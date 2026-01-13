@@ -1,0 +1,366 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WayVes",
+  "description": "Schema for config files",
+  "definitions": {
+    "gravity-settings": {
+      "description": "Parameters used to specify the responsiveness and the latency of audio input for the Shaders.",
+      "properties": {
+        "gravity-step": {
+          "type": "number",
+          "minimum": 0,
+          "default": 4.2,
+          "description": "Specifies the 'Gravity' of the Audio. Higher values means faster drops."
+        },
+        "average-frames": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 5,
+          "description": "Number of Frames to queue and run through the average function. Increasing this value will create latency between the audio input and the Visualiser Output, but will make for much smoother results."
+        }
+      }
+    },
+    "smooth-settings": {
+      "description": "Parameters used while Smoothing the audio input values for the Shaders.",
+      "properties": {
+        "round-formula": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "The type of formula to use for weighting values when smoothing.\n0 : Circular, heavily rounded points\n1 : Sinusoidal, rounded at both low and high weighted values like a sine wave\n2 : Linear, not rounded at all; linear distance"
+        },
+        "sample-mode": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling Mode for Smoothing.\n 0 : averages all the inputs in the sample range for a given point. Produces smooth output, but peaks are not well represented.\n1 : obtains the best value from the closest peak in the sample range. Very accurate peaks, but output is jagged and sporadic.\n2 : uses the results from both `0` and `1` sample modes, with the weight provided in $(sample-hybrid-weight)."
+        },
+        "sample-hybrid-weight": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0.65,
+          "maximum": 1,
+          "description": "Should be provided in the range (0, 1). Higher values favor averaged results. For $(sample-mode) : 2 only."
+        },
+        "sample-scale": {
+          "type": "number",
+          "default": 8,
+          "minimum": 0,
+          "description": "Factor used to scale frequencies. Lower values allows lower frequencies to occupy more space."
+        },
+        "sample-range": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0.9,
+          "maximum": 1,
+          "description": "The frequency range to sample. 1.0 would be the entire FFT output, and lower values reduce the displayed frequencies in a log-like scale."
+        },
+        "smooth-factor": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0.025,
+          "maximum": 1,
+          "description": "Larger values mean more smoothing in the output, however high values can be expensive to compute."
+        },
+        "adjacent-sample-nums": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "description": "The Number of samples that are taken from the left and right of the current audio sample, that are also included in the current audio sample. The final result is then averaged based on the number of averaged samples."
+        }
+      }
+    },
+    "post-processing": {
+      "type": "object",
+
+      "properties": {
+        "name": {
+          "description": "The Name of the Post-Processing Effect",
+          "type": "string"
+        },
+        "passes": {
+          "type": "integer",
+          "description": "The number of passes that are to be applied for this Effect.",
+          "default": 1,
+          "minimum": 1
+        }
+      },
+      "required": ["name"]
+    },
+    "channels-map": {
+      "type": "object",
+      "description": "Used to map the Audio Channels. Left Channel can be mapped to the Right, and vice-versa. Or, Both Channels can be mapped to either the Left or the Right Channel.",
+      "properties": {
+        "left": {
+          "type": "integer",
+          "description": "Channel to map to the Left Audio Channel.\n 0 : Left Channel\n 1 : Right Channel",
+          "default": 0
+        },
+        "right": {
+          "type": "integer",
+          "description": "Channel to map to the Right Audio Channel.\n 0 : Left Channel\n 1 : Right Channel",
+          "default": 1
+        }
+      }
+    },
+    "audio-overrides": {
+      "type": "object",
+      "properties": {
+        "channels-map": {
+          "$ref": "#/definitions/channels-map"
+        },
+        "min-frequency": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum Frequency for the input Audio."
+        },
+        "max-frequency": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum Frequency for the input Audio. Should be greater than min-frequency, and smaller than or equal to sample-rate / 2.,"
+        },
+        "smooth-audio": {
+          "type": "boolean",
+          "description": "Specifies whether the audio should be smoothed by the Smoothing Function, conforming to the smooth-settings parameters."
+        },
+        "strict-frequency-bounds": {
+          "type": "boolean",
+          "description": "Specifies whether the input Audio Range corresponds to the supplied Minimum and Maximum Frequencies. If False, the audio input for the Shaders will always have $(fragment-size) length, regardless of the Minimum / Maximum Frequencies. Recommended to set only when smooth-audio is false, as it may produce jarring Visuals"
+        },
+        "smooth-settings": {
+          "$ref": "#/definitions/smooth-settings"
+        },
+        "gravity-settings": {
+          "$ref": "#/definitions/gravity-settings"
+        }
+      }
+    },
+    "paintable": {
+      "type": "object",
+      "properties": {
+        "class-name": {
+          "description": "Class Name to use for Styling, and to identify the Shader for passing in dynamic inputs.",
+          "type": "string"
+        },
+        "margin-left": {
+          "description": "Left Margin.",
+          "default": 0,
+          "type": "integer"
+        },
+        "margin-right": {
+          "description": "Right Margin.",
+
+          "default": 0,
+          "type": "integer"
+        },
+        "margin-top": {
+          "description": "Top Margin.",
+
+          "default": 0,
+          "type": "integer"
+        },
+        "margin-bottom": {
+          "description": "Bottom Margin.",
+
+          "default": 0,
+          "type": "integer"
+        },
+        "layer": {
+          "type": ["integer", "string"],
+          "default": "Bottom",
+          "description": "Specifies the position of the Shader on the 'Z-Axis'.\n0 | Bottom : Beneath all Applications\n1 | Background : Beneath all Applications, above Bottom Layer\n2 | Top : On top of all Applications, except Fullscreen Applications\n3 | Overlay : Above all Applications"
+        },
+        "anchor-left": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to anchor to the Left Edge."
+        },
+        "exclusive-layer": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to enable Exclusive Layer for this Window."
+        },
+
+        "anchor-right": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to anchor to the Right Edge."
+        },
+        "anchor-top": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to anchor to the Top Edge."
+        },
+        "anchor-bottom": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to anchor to the Bottom Edge."
+        },
+        "window-width": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 100,
+          "description": "The Width of the Shader Window."
+        },
+        "window-height": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 100,
+          "description": "The Height of the Shader Window."
+        }
+      },
+      "required": ["window-width", "window-height", "layer"]
+    },
+    "shader": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/definitions/paintable" },
+        {
+          "properties": {
+            "name": {
+              "description": "Name of the Shader.",
+              "type": "string"
+            },
+
+            "config-file": {
+              "description": "Full Name of the Configuration file to use for the Shader. Defaults to '$(name).glsl'",
+              "type": "string"
+            },
+            "atomic-textures": {
+              "type": "integer",
+              "description": "The Number of Atomic-type Image Textures (R32UI) that should be created for the Shader."
+            },
+            "image-textures": {
+              "type": "integer",
+              "description": "The Number of Image Textures (RGBA32F) that should be created for the Shader."
+            },
+            "fps": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 60,
+              "description": "The Target Frame Rate for this Shader."
+            },
+            "paintables": {
+              "type": "array",
+              "description": "List of Paintable Objects. A Paintable represents a 'copy' of the Shader that can be displayed in a different Window.",
+              "items": {
+                "$ref": "#/definitions/paintable"
+              }
+            },
+            "overrides": {
+              "type": "array",
+              "description": "Overrides to pass to the Shader Configuration File. Applicable only for '#define variableName variableValue' types.",
+              "items": {
+                "type": "string",
+                "description": "Override Value. Should conform to 'variableName=newVariableValue' format."
+              }
+            },
+            "audio-overrides": {
+              "description": "Specify Audio Overrides that deviate from the Audio Object's Audio Overrides. Unspecified values take on the values from the Audio Object's Overrides.",
+              "$ref": "#/definitions/audio-overrides"
+            },
+            "post-processing": {
+              "type": "array",
+              "minLength": 1,
+              "description": "Represents the Post-Processing Effects that get applied one after the other.",
+              "items": {
+                "$ref": "#/definitions/post-processing"
+              }
+            }
+          }
+        }
+      ],
+      "required": ["name", "layer", "window-width", "window-height"]
+    },
+    "pipewire-settings": {
+      "type": "object",
+      "description": "PipeWire Settings Object. Represents Audio Capture properties, like Sample Rate, Buffer Size and such.",
+      "properties": {
+        "sample-rate": {
+          "type": "integer",
+          "description": "Sample Rate that will be used for capturing audio. Consumed by PipeWire."
+        },
+        "channels": {
+          "type": "integer",
+          "description": "Number of channels that specify Mono / Stereo capturing."
+        },
+        "fft-scale": {
+          "type": "number",
+          "default": 10.2,
+          "minimum": 0,
+          "description": "Factor for how to scale higher frequencies. Used in a linear equation which is multiplied by the result of the fft transformation."
+        },
+        "fft-cutOff": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0.3,
+          "description": "Cut-Off for the Bass end of the audio data when scaling frequencies. Higher values cause more of the bass frequencies to be skipped when scaling."
+        },
+        "apply-fft": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to apply FFT to the captured Audio. Set False for Waveform Audio Output."
+        },
+        "sample-size": {
+          "type": "integer",
+          "description": "Represents the amount of audio samples that get captured at once. Consumed by PipeWire."
+        },
+        "fragment-size": {
+          "type": "integer",
+          "description": "Represents the actual amount of audio samples that get sent to the Shaders for Visualisation."
+        },
+        "capture-mic": {
+          "type": "boolean",
+          "description": "Enable if microphone input audio needs to be captured. Consumed by PipeWire."
+        },
+
+        "target-object": {
+          "type": "string",
+          "description": "Specifies the Target Object to which the PipeWire Stream will be connected. Consumed by PipeWire."
+        },
+        "audio-format": {
+          "type": "string",
+          "description": "Specifies the Audio Format in which audio will be captured. Consumed by PipeWire."
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "description": "An Audio Object. Stores Shaders and various Audio settings.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The Name to use for the Audio Capturing Process. Also used in the Bus Name for the GTK Application that handles this Audio Object."
+        },
+        "pipewire-settings": {
+          "$ref": "#/definitions/pipewire-settings"
+        },
+        "audio-overrides": {
+          "description": "Audio Overrides Object. Represents Smoothing & Gravity Settings, and Minimum & Maximum Frequencies.",
+          "$ref": "#/definitions/audio-overrides"
+        },
+        "shaders": {
+          "type": "array",
+          "minLength": 1,
+          "description": "A list of Shaders. A Shader is an OpenGL Program that can be used to read the incoming Audio Data and represent it visually.",
+          "items": {
+            "$ref": "#/definitions/shader"
+          }
+        }
+      },
+      "required": ["name", "shaders"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "audios": {
+      "type": "array",
+      "description": "A list of Audio objects. An Audio Object represents Audio Capture Properties and the list of Shaders that get the transformed Audio data as input for processing.",
+      "items": { "$ref": "#/definitions/audio" }
+    }
+  },
+
+  "required": ["audios"]
+}

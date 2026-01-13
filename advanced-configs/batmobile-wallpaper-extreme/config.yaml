@@ -1,0 +1,383 @@
+# yaml-language-server: $schema=./schemas/WayVes_config_schema.json
+
+audios:
+  - name: audio1
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: ncs
+        atomic-textures: 1
+        margin-top: 12
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 380
+        window-height: 380
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: linear
+        class-name: bars
+        config-file: bars_rounded.glsl
+        image-textures: 1
+        margin-bottom: 511
+        margin-right: 303
+        anchor-right: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 300
+        window-height: 100
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: linear
+        overrides:
+          - visualiserMode=1
+          - enableDecay=true
+          - visualiserDirections=1
+          - amplify=160
+          - audioExponentiate=false
+          - glowColor0=vec4(0.1255, 0.2353, 0.4863, 1.0)
+          - fragmentWidth=16
+          - glowSize0=3.5
+          - glowIntensity0=.5
+        class-name: merged_bars
+        image-textures: 1
+        margin-top: 7
+        margin-left: 880
+        anchor-left: true
+        anchor-top: true
+        layer: Bottom
+        window-width: 160
+        window-height: 200
+        post-processing:
+          - name: glow
+            passes: 1
+        audio-overrides:
+          max-frequency: 3000
+          gravity-settings:
+            average-frames: 15
+
+      - name: chain
+        margin-right: 11
+        margin-top: -40
+        anchor-right: true
+        anchor-top: true
+        layer: Top
+
+        window-width: 880
+        window-height: 50
+        audio-overrides:
+          min-frequency: 20
+          max-frequency: 600
+          smooth-audio: false
+          strict-frequency-bounds: true
+        paintables:
+          - margin-left: 11
+            margin-top: -40
+            anchor-left: true
+            anchor-top: true
+            layer: Top
+            window-width: 880
+            window-height: 50
+
+  - name: audio2
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 1024
+      capture-mic: true
+      audio-format: F32_LE
+
+    shaders:
+      - name: ncs
+        class-name: ncs_mic
+        config-file: ncs_mic.glsl
+        atomic-textures: 1
+        margin-right: 695
+        margin-bottom: 555
+        anchor-right: true
+        anchor-bottom: true
+        layer: Background
+        window-width: 100
+        window-height: 100
+        post-processing:
+          - name: glow
+            passes: 1
+
+  - name: audio3
+
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 256
+      fragment-size: 1024
+      capture-mic: false
+      audio-format: F32_LE
+
+    audio-overrides:
+      min-frequency: 22
+
+    shaders:
+      - name: angular
+        margin-left: 825
+        margin-bottom: 340
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        image-textures: 1
+        window-width: 310
+        window-height: 310
+        post-processing:
+          - name: glow
+            passes: 1
+          - name: rotate
+            passes: 1
+
+        audio-overrides:
+          min-frequency: 0
+          max-frequency: 1300
+          smooth-audio: false
+          strict-frequency-bounds: true
+
+        paintables:
+          - class-name: angular
+            margin-left: 250
+            margin-bottom: 290
+            anchor-left: true
+            anchor-bottom: true
+            layer: Bottom
+            window-width: 240
+            window-height: 240
+
+      - name: angular
+        config-file: arrow.glsl
+        margin-left: 450
+        margin-bottom: 337
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 50
+        window-height: 50
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: angular
+        config-file: arrow.glsl
+        margin-left: 464
+        margin-bottom: 339
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 50
+        window-height: 50
+        post-processing:
+          - name: glow
+            passes: 1
+        overrides:
+          - audioModifier=(.65 + 1.1 * texture(audioR, .08).x)
+
+      - name: angular
+        config-file: arrow.glsl
+        margin-left: 478
+        margin-bottom: 341
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 50
+        window-height: 50
+        post-processing:
+          - name: glow
+            passes: 1
+        overrides:
+          - audioModifier=(.65 + 1.1 * texture(audioR, .1).x)
+
+      - name: angular
+        config-file: arrow.glsl
+        margin-left: 492
+        margin-bottom: 343
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 50
+        window-height: 50
+        post-processing:
+          - name: glow
+            passes: 1
+        overrides:
+          - audioModifier=(.65 + 1.1 * texture(audioR, .12).x)
+
+      - name: linear
+        class-name: sawtooth
+        margin-left: 390
+        margin-bottom: 320
+        anchor-left: true
+        anchor-bottom: true
+        layer: Background
+        window-width: 620
+        window-height: 230
+        post-processing:
+          - name: glow
+            passes: 1
+        overrides:
+          - fragmentWidth=4
+          - enableDecay=false
+          - leftPadding=6
+          - rightPadding=6
+          - particleBorderSize=0
+          - innerParticleSoftness=0
+          - outerParticleSoftness=0
+          - particleColor=vec4(0)
+          - particleBorderColor=vec4(0)
+          - amplify=60.
+          - alternateAmplitude=true
+          - combineAudioChannels=true
+          - visualiserDirections=0
+          - enableConnectors=true
+          - glowColor0=vec4(0.1059, 0.0039, 0.1529, 1.0)
+          - glowIntensity0=3.5
+
+        audio-overrides:
+          gravity-settings:
+            average-frames: 7
+
+      - name: linear
+        class-name: particles
+        image-textures: 1
+        margin-left: 380
+        margin-bottom: 350
+        anchor-left: true
+        anchor-bottom: true
+        layer: Background
+        window-width: 570
+        window-height: 330
+        overrides:
+          - leftPadding=6
+          - rightPadding=6
+        post-processing:
+          - name: glow
+            passes: 1
+        audio-overrides:
+          gravity-settings:
+            average-frames: 7
+
+  - name: audio4
+    pipewire-settings:
+      sample-rate: 2000
+      channels: 1
+      sample-size: 256
+      fragment-size: 512
+      capture-mic: false
+      audio-format: F32_LE
+
+      fft-scale: 6
+      fft-cutOff: 4
+
+    audio-overrides:
+      min-frequency: 5
+      max-frequency: 550
+
+      smooth-settings:
+        adjacent-sample-nums: 20
+        smooth-factor: .12
+        sample-range: .2
+        sample-scale: 2.6
+
+    shaders:
+      - name: angular
+        config-file: angular_bottom.glsl
+        class-name: angular_bottom
+        margin-bottom: -50
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 1920
+        window-height: 450
+        post-processing:
+          - name: glow
+            passes: 1
+        audio-overrides:
+          min-frequency: 0
+          max-frequency: 1000
+
+          smooth-settings:
+            adjacent-sample-nums: 10
+            smooth-factor: .02
+            sample-range: .9
+            sample-scale: 8
+          gravity-settings:
+            gravity-step: 7.5
+            average-frames: 4
+
+      - name: angular
+        config-file: angular_circle.glsl
+        class-name: angular_circle
+        audio-overrides:
+          smooth-settings:
+            smooth-factor: 0.15
+          gravity-settings:
+            gravity-step: 12
+            average-frames: 15
+        margin-right: -54
+        margin-top: -42
+        anchor-right: true
+        anchor-top: true
+        layer: Background
+        window-width: 460
+        window-height: 460
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: angular
+        class-name: angular_circle
+
+        audio-overrides:
+          smooth-settings:
+            smooth-factor: 0.135
+          gravity-settings:
+            gravity-step: 12
+            average-frames: 11
+
+        config-file: angular_circle_mid.glsl
+
+        margin-right: -54
+        margin-top: -42
+        anchor-right: true
+        anchor-top: true
+        layer: Background
+        window-width: 460
+        window-height: 460
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: angular
+        class-name: angular_circle
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 12
+            average-frames: 6
+
+        config-file: angular_circle_top.glsl
+
+        margin-right: -54
+        margin-top: -42
+        anchor-right: true
+        anchor-top: true
+        layer: Background
+        window-width: 460
+        window-height: 460
+        post-processing:
+          - name: glow
+            passes: 1

@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=./schemas/WayVes_config_schema.json
+
+audios:
+  - name: audio1
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: linear
+        margin-bottom: 30
+        margin-left: 30
+        anchor-left: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 300
+        window-height: 200
+
+      - name: angular
+        margin-bottom: 30
+        margin-right: 30
+        anchor-right: true
+        anchor-bottom: true
+        layer: Bottom
+        window-width: 300
+        window-height: 300
+
+      #Uncomment to enable the NCS Visualiser
+
+      # - name: ncs
+      #   atomic-textures: 1
+      #   margin-top: 12
+      #   anchor-left: true
+      #   anchor-top: true
+      #   layer: Overlay
+      #   window-width: 380
+      #   window-height: 380
+      #   post-processing:
+      #     - name: glow
+      #       passes: 1
+
+      #Uncomment to enable the Chain Visualiser
+      # - name: chain
+      #   margin-right: 11
+      #   margin-top: 5
+      #   anchor-right: true
+      #   anchor-top: true
+      #   layer: Top
+
+      #   window-width: 880
+      #   window-height: 50
+      #   audio-overrides:
+      #     min-frequency: 20
+      #     max-frequency: 600
+      #     smooth-audio: false
+      #     strict-frequency-bounds: true
+      #   paintables:
+      #     - margin-left: 11
+      #       margin-top: 5
+      #       anchor-left: true
+      #       anchor-top: true
+      #       layer: Top
+      #       window-width: 880
+      #       window-height: 50

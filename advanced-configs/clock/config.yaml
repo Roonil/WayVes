@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=./schemas/WayVes_config_schema.json
+
+audios:
+  - name: audio1
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: angular
+        config-file: clock.glsl
+        class-name: clock
+        window-height: 300
+        window-width: 300
+        margin-right: 510
+        margin-top: 100
+        layer: Bottom
+        anchor-right: true
+        anchor-top: true
+
+      - name: angular
+        config-file: clock_hand.glsl
+        class-name: clock_hour
+        window-height: 200
+        window-width: 200
+        margin-right: 410
+        margin-top: 100
+        layer: Bottom
+        anchor-right: true
+        anchor-top: true
+        overrides:
+          - isMinute=0
+          - visualiserMode=2
+
+      - name: angular
+        config-file: clock_hand.glsl
+        class-name: clock_minute
+        window-height: 200
+        window-width: 200
+        margin-right: 410
+        margin-top: 100
+        layer: Bottom
+        anchor-right: true
+        anchor-top: true

@@ -1,0 +1,29 @@
+.bars_paintable {
+    transform: scaleY(-1);
+}
+
+.bars {
+    padding-right: 140px;
+    padding-left: 10px;
+    transform: rotateZ(-10deg) rotateX(145deg);
+}
+
+.ncs_mic {
+    transform: rotateY(40deg);
+}
+
+.particles {
+    transform: rotateZ(-12deg);
+}
+
+.sawtooth {
+    transform: rotateZ(-10deg);
+}
+
+.angular {
+    transform: rotateX(-5deg) rotateY(140deg) rotateZ(170deg);
+}
+
+.chain_paintable {
+    transform: scaleX(-1);
+}
