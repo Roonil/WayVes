@@ -632,8 +632,7 @@ void main()
     int lastN = int(r_resolution.x - (leftPadding) - (rightPadding)) / (fragmentWidth)-1;
     float lastXCoords = getNthCenter(lastN).x;
 
-    n = max(0, n);
-
+    n = clamp(n, 0, lastN);
     cutOff = step(n, lastN);
     vec2 currentCenter = getNthCenter(n);
 
