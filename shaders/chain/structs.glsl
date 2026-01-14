@@ -14,11 +14,11 @@ struct AudioSettings {
 
     // Specifies the reversal of the left audio channel.
     int reverseLeft;
-    // Example: true
+    // Example: 1
 
     // Specifies the reversal of the right audio channel.
     int reverseRight;
-    // Example: true
+    // Example: 1
 
     // 0 for mirrored audio output, where the left half corresponds to the left audio channel and the right half corresponds to the right audio channel. 1 for linear audio output, where the top half represents the right audio channel and the bottom half represents the left audio channel.
     int mode;
