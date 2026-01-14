@@ -55,8 +55,8 @@ void setProps()
 
     bar.type = 2;
     bar.offset.y = -15;
-    bar.innerSoftness = vec3(0, 1, 3);
-    bar.outerSoftness = vec3(0, 2.5, 1);
+    bar.innerSoftness = vec3(0, 2, 3);
+    bar.outerSoftness = vec3(0, 3.5, 1);
 }
 
 void setParticleDownProps()

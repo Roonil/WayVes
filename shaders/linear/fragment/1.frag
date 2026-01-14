@@ -219,7 +219,7 @@ int particleSDF(int particleSelector)
     vec2 pos = particle.fragment.coords;
 
     float dist = length(pos - currentCenter);
-    float iAA = fwidth(dist - currentCenter.x);
+    float iAA = 0;
     float oAA = iAA;
     iAA += particle.innerSoftness;
     oAA += particle.outerSoftness;

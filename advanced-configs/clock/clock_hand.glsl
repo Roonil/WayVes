@@ -35,11 +35,11 @@ void setProps()
     bar.borderColor = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(0.9529, 0.9529, 0.9529, 1.0), 1. - isMinute);
     bar.borderSize = vec3(0, 0.75, 0);
 
-    bar.size = vec3(0, 3.5, 80) + vec3(0, 0, mix(-12, 0, isMinute));
+    bar.size = vec3(0, 4.5, 80) + vec3(0, 0, mix(-12, 8, isMinute));
     bar.type = 2;
-    bar.offset.y = 8 - mix(10, 0, isMinute);
-    bar.innerSoftness = vec3(0, 1.5, 0);
-    bar.outerSoftness = vec3(0, 1.5, 0);
+    bar.offset.y = 8 - mix(10, -15, isMinute);
+    bar.innerSoftness = vec3(0, 3., 0);
+    bar.outerSoftness = vec3(0, 2., 0);
 
     particle.radius = 7;
     particle.borderSize = 1.5;

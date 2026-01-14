@@ -11,8 +11,8 @@
 #define amplify 102.
 #define weight 3.4
 
-#define innerParticleSoftness 1.
-#define outerParticleSoftness 0.
+#define innerParticleSoftness 2.
+#define outerParticleSoftness 1.
 #define particleBorderColor vec4(1.0, 0.651, 0.8431, 1.0)
 #define particleColor vec4(1.0, 0.0118, 0.3725, 1.0)
 

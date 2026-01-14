@@ -25,10 +25,10 @@ audios:
       - name: angular
         config-file: clock_hand.glsl
         class-name: clock_hour
-        window-height: 200
-        window-width: 200
-        margin-right: 410
-        margin-top: 100
+        window-height: 250
+        window-width: 250
+        margin-right: 535
+        margin-top: 125
         layer: Bottom
         anchor-right: true
         anchor-top: true
@@ -39,10 +39,10 @@ audios:
       - name: angular
         config-file: clock_hand.glsl
         class-name: clock_minute
-        window-height: 200
-        window-width: 200
-        margin-right: 410
-        margin-top: 100
+        window-height: 250
+        window-width: 250
+        margin-right: 535
+        margin-top: 125
         layer: Bottom
         anchor-right: true
         anchor-top: true

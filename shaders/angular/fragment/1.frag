@@ -254,7 +254,7 @@ int roundedBarsSDF(vec2 currentCenter, vec2 barBottomCoords, vec2 barOffset)
     float W = bar.size.y / 2. + bar.borderSize.y;
 
     outerVal -= W;
-    float oAA = (fwidth(length(pos)));
+    float oAA = 0;
 
     float iAA = oAA;
 
@@ -413,7 +413,7 @@ int particleSDF(int particleDirectionSelector)
     vec2 pos = particle.fragment.vectorFromCenter;
 
     float dist = length(pos - particle.connector.currentCenter);
-    float iAA = fwidth((dist - particle.connector.currentCenter.x));
+    float iAA = 0;
     float oAA = iAA;
     iAA += particle.innerSoftness;
     oAA += particle.outerSoftness;
