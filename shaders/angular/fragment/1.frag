@@ -598,6 +598,8 @@ int particleDownProps(vec2 prevNorm, vec2 currentNorm, vec2 nextNorm, float actu
 
     setParticleDownProps();
     currentParticleOffset += particle.offset;
+    nextParticleOffset += particle.offset;
+    prevParticleOffset += particle.offset;
 
     float currentOffsetX = currentParticleOffset.x;
     currentParticleOffset.x *= RAD_PI;
