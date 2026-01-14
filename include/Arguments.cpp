@@ -21,7 +21,7 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
 
     case 'v':
         arguments->visibility = new int;
-        *arguments->visibility = 1;
+        *arguments->visibility = arg == NULL ? -1 : (int)strtol(arg, NULL, 10);
         break;
 
     case 'V':

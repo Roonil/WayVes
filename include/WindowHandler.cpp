@@ -271,11 +271,10 @@ void WindowHandler::applyCLIArgs(Arguments arguments, WindowHandler *windowHandl
 
             if (arguments.visibility != NULL)
             {
-
-                windowHandler->shaderProgram.shouldRender = newRenderValue;
+                windowHandler->shaderProgram.shouldRender = *arguments.visibility == -1 ? newRenderValue : *arguments.visibility;
 
                 if (windowHandler->shaderProgram.shaderProps == NULL)
-                    ((PaintableWindowHandler *)windowHandler)->toggleVisibility(newRenderValue);
+                    ((PaintableWindowHandler *)windowHandler)->toggleVisibility(*arguments.visibility == -1 ? newRenderValue : *arguments.visibility);
             }
         }
     }

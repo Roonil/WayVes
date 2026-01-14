@@ -30,7 +30,7 @@ private:
         {"right-anchor", 'p', "right-anchor-value", 0, "Specify the Right Anchor"},
         {"top-anchor", 'u', "top-anchor-value", 0, "Specify the Top Anchor"},
         {"bottom-anchor", 'd', "bottom-anchor-value", 0, "Specify the Bottom Anchor"},
-        {"toggle-visibility", 'v', 0, 0, "Toggle Visibility"},
+        {"visibility", 'v', "visibility-value", OPTION_ARG_OPTIONAL, "Toggle Visibility, or set Visibility to the specified value"},
         {"width", 'w', "width-value", 0, "Specify Window Width"},
         {"height", 'h', "height-value", 0, "Specify Window Height"},
         {"version", 'V', 0, 0, "Show Version Information"},

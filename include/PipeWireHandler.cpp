@@ -6,8 +6,6 @@
 #include "CYAMLClasses.h"
 #include "Errors.h"
 
-using namespace std;
-
 void PipeWireHandler::processAudioBuffer(void *userdata)
 {
   PipeWireHandler *pipeWireSetting = (PipeWireHandler *)userdata;
@@ -113,8 +111,8 @@ void PipeWireHandler::onStreamParameterChanged(void *_data, uint32_t id,
 
   spa_format_audio_raw_parse(param, &data->format.info.raw);
 
-  cout << "Starting Audio-capturer Thread " << data->audioName << ", Capturing Rate: " << data->format.info.raw.rate
-       << ", Channels: " << data->format.info.raw.channels << endl;
+  std::cout << "Starting Audio-capturer Thread " << data->audioName << ", Capturing Rate: " << data->format.info.raw.rate
+            << ", Channels: " << data->format.info.raw.channels << std::endl;
 }
 
 void PipeWireHandler::onStateChanged(void *userdata, enum pw_stream_state old_state,
