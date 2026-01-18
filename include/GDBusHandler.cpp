@@ -17,6 +17,8 @@ void GDBusHandler::emitCLIArgs(std::string className, char *args[])
         g_dbus_connection_emit_signal(conn, NULL, "/com/r00n1l/audios", std::string("com.r00n1l.allcli").c_str(), "AllCLI", g_variant_new_tuple(&arrayVariant, 1), NULL);
     else
         g_dbus_connection_emit_signal(conn, NULL, "/com/r00n1l/audios", std::string("com.r00n1l." + className).c_str(), "ClassCLI", g_variant_new_tuple(&arrayVariant, 1), NULL);
+
+    g_dbus_connection_flush_sync(conn, NULL, NULL);
 }
 
 GDBusHandler::~GDBusHandler()

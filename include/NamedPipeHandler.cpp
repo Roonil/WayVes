@@ -62,7 +62,14 @@ void NamedPipeHandler::listenForPipeInputs()
 
                     ssize_t n = read(fds[i].fd, buffer, sizeof(buffer) - 1);
 
-                    if (n > 0)
+                    if (n == 0)
+                    {
+
+                        close(fds[i].fd);
+                        fds[i].fd = openFIFOFromPath(pipeDirectory + classNames.at(i));
+                        fds[i].events = POLLIN;
+                    }
+                    else if (n > 0)
 
                     {
                         buffer[n] = '\0';
