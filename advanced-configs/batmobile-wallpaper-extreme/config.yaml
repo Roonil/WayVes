@@ -45,22 +45,24 @@ audios:
           - visualiserDirections=1
           - amplify=160
           - audioExponentiate=false
-          - glowColor0=vec4(0.1255, 0.2353, 0.4863, 1.0)
-          - fragmentWidth=16
+          - barSide=1.
+          - glowColor0=vec4(0.1333, 0.0588, 0.0588, 0.557)
+          - fragmentWidth=23
           - glowSize0=3.5
           - glowIntensity0=.5
         class-name: merged_bars
         image-textures: 1
-        margin-top: 7
-        margin-left: 880
+        margin-top: -8
+        margin-left: 520
         anchor-left: true
         anchor-top: true
-        layer: Bottom
-        window-width: 160
+        layer: Top
+        window-width: 860
         window-height: 200
         post-processing:
+          - name: rotate
           - name: glow
-            passes: 1
+
         audio-overrides:
           max-frequency: 3000
           gravity-settings:
@@ -68,7 +70,7 @@ audios:
 
       - name: chain
         margin-right: 11
-        margin-top: -40
+        margin-top: -45
         anchor-right: true
         anchor-top: true
         layer: Top
@@ -82,7 +84,7 @@ audios:
           strict-frequency-bounds: true
         paintables:
           - margin-left: 11
-            margin-top: -40
+            margin-top: -45
             anchor-left: true
             anchor-top: true
             layer: Top
