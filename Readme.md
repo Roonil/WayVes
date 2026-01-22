@@ -21,12 +21,12 @@ Check out the WayVes Wiki <a href="https://roonil.github.io">here</a>
 https://github.com/user-attachments/assets/b2676b9f-d041-4f15-89f2-f0fec04cbdbb
 
 
-Everything, Everywhere, All at once!
+Everything, Everywhere, All at once! (Wallpaper link: [Here](https://www.freepik.com/free-ai-image/batmobile-concept-car-with-neon-lights_233259012.htm#fromView=keyword&page=1&position=14&uuid=4847fb99-2cb4-4212-8c9d-b449f77feeeb&query=Gaming+car+wallpaper))
 
 ![BatMobile](assets/Batmobile_Extreme.png)<br>
 
 
-Enabling Blur using layerrules in Hyprland (top-right Visualiser):<br>
+Enabling Blur using layerrules in Hyprland (top-right Visualiser) (Wallpaper link: [Here](https://4kwallpapers.com/nature/mountains-reflections-minimal-render-digital-composition-5k-38.html)):<br>
 
 ![Sea Reflection](assets/Sea_Reflection.png)
 
