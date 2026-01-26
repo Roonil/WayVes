@@ -34,7 +34,10 @@ void ShaderWindowHandler::parseMessage(char buffer[], int bytes, std::map<std::s
 
         int equalsIdx = line.find("=");
         if (equalsIdx == std::string::npos)
-            Errors::throwError("Invalid format in Piped data");
+        {
+            Errors::throwError("Invalid format in Piped data", "", "", 1);
+            continue;
+        }
 
         std::string variableName = line.substr(0, equalsIdx);
         std::string variableValue = line.substr(equalsIdx + 1);
@@ -192,12 +195,13 @@ void PaintableWindowHandler::displayWindow()
 void PaintableWindowHandler::handleGDBusSignals(GDBusConnection *conn)
 {
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.paintableShaderConfig->className)).c_str(), "ClassCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
-
+    g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + instance).c_str(), "TearDown", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l.allcli").c_str(), "AllCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
 }
 
-void PaintableWindowHandler::setup(GDBusConnection *conn, void *args)
+void PaintableWindowHandler::setup(GDBusConnection *conn, std::string instance, void *args)
 {
+    this->instance = instance;
     setGtkWindow();
 
     getPaintable((GtkWidget *)args);
@@ -288,6 +292,20 @@ void WindowHandler::handleCLI(GDBusConnection *connection,
                               GVariant *parameters,
                               gpointer user_data)
 {
+
+    if (g_strcmp0(signal_name, "TearDown") == 0)
+    {
+
+        ShaderWindowHandler *shaderWindowHandler = (ShaderWindowHandler *)user_data;
+        if (shaderWindowHandler != NULL)
+        {
+
+            delete shaderWindowHandler;
+
+            kill(getppid(), SIGTERM);
+        }
+    }
+
     if (g_strcmp0(signal_name, "ClassCLI") != 0 && g_strcmp0(signal_name, "AllCLI") != 0)
         return;
 
@@ -340,6 +358,7 @@ void ShaderWindowHandler::handleGDBusSignals(GDBusConnection *conn)
 {
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.shaderProps->className)).c_str(), "UniformValue", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleUniforms, &shaderProgram.uniformValues, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.shaderProps->className)).c_str(), "ClassCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
+    g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + instance).c_str(), "TearDown", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l.allcli").c_str(), "AllCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
 }
 
@@ -353,15 +372,17 @@ void ShaderWindowHandler::setupPaintables(GDBusConnection *conn)
         while (paintableConfigIterator < paintableWindowsCount)
         {
 
-            currentPaintableConfig->setup(conn, (void *)glArea);
+            currentPaintableConfig->setup(conn, instance, (void *)glArea);
 
             currentPaintableConfig = paintableWindows[++paintableConfigIterator];
         }
     }
 }
 
-void ShaderWindowHandler::setup(GDBusConnection *conn, void *args = NULL)
+void ShaderWindowHandler::setup(GDBusConnection *conn, std::string instance, void *args = NULL)
 {
+    this->instance = instance;
+
     setGtkWindow();
 
     setGLArea();

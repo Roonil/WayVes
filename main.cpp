@@ -36,9 +36,23 @@ int main(int argc, char *args[])
 
   char *configFileName = arguments->configFileName;
 
-  ConfigsHandler configsHandler(configFileName, getDirectoryPrefix());
-  configsHandler.initialiseGTKApps();
+  std::string instance = std::string(arguments->instance == NULL ? "" : arguments->instance);
 
-  NamedPipeHandler namedPipeHandler(configsHandler.classNames);
-  namedPipeHandler.pollForPipes();
+  if (instance.empty())
+    instance = "default";
+
+  std::string overrideFile = "";
+
+  while (true)
+  {
+
+    ConfigsHandler *configsHandler = new ConfigsHandler(overrideFile.empty() ? configFileName : (char *)overrideFile.c_str(), getDirectoryPrefix());
+    configsHandler->initialiseGTKApps(instance);
+
+    NamedPipeHandler *namedPipeHandler = new NamedPipeHandler(configsHandler->classNames, instance, &overrideFile);
+    namedPipeHandler->pollForPipes();
+
+    delete configsHandler;
+    delete namedPipeHandler;
+  }
 }

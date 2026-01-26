@@ -14,7 +14,8 @@ void GApplicationHandler::rendererThread(gpointer data)
   while (true)
   {
 
-    g_idle_add_once((GSourceOnceFunc)gtk_gl_area_queue_render, windowHandler->glArea);
+    if (GTK_IS_GL_AREA(windowHandler->glArea))
+      g_idle_add_once((GSourceOnceFunc)gtk_gl_area_queue_render, windowHandler->glArea);
 
     ts = g_timer_elapsed(timer, NULL);
 
@@ -41,6 +42,7 @@ void GApplicationHandler::rendererThread(gpointer data)
 
 void GApplicationHandler::activateApplication(Configs *configs, GDBusConnection *conn)
 {
+  configs->windowHandler->shaderProgram.pipeWireSetting->createPipeWireThread();
 
   timer = g_timer_new();
 
@@ -67,7 +69,7 @@ void GApplicationHandler::activateApplication(Configs *configs, GDBusConnection 
 
     ShaderWindowHandler *windowHandler = configsIterator->windowHandler;
 
-    windowHandler->setup(conn, NULL);
+    windowHandler->setup(conn, configs->instance, NULL);
 
     g_thread_new("renderer", (GThreadFunc)rendererThread, windowHandler);
 
@@ -80,12 +82,18 @@ void GApplicationHandler::onBusAcquired(GDBusConnection *conn, const gchar *name
   activateApplication((Configs *)configs, conn);
 }
 
-GApplicationHandler::GApplicationHandler(Configs *configs)
+GApplicationHandler::GApplicationHandler(Configs *configs, std::string instance)
 {
   gtk_init();
   this->configs = configs;
+
+  configs->instance = instance;
+
+  busName = std::string("com.r00n1l." + instance + "." + (configs->audioName));
+
+  configs->windowHandler->gtkApplicationInstance = this;
+
   loop = g_main_loop_new(NULL, false);
-  busName = std::string("com.roonil." + (configs->audioName));
 }
 
 void GApplicationHandler::runApp()

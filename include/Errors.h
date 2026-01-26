@@ -7,7 +7,7 @@
 class Errors
 {
 public:
-    static void throwError(std::string errorMessage, std::string errorContext = "", std::string prefix = "")
+    static void throwError(std::string errorMessage, std::string errorContext = "", std::string prefix = "", int tolerable = 0)
     {
         std::cerr << "Error: ";
 
@@ -23,7 +23,8 @@ public:
             std::cerr << " ";
 
         std::cerr << errorMessage << "\n";
-        std::exit(EXIT_FAILURE);
+        if (tolerable == 0)
+            std::exit(EXIT_FAILURE);
     }
 };
 

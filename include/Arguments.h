@@ -4,7 +4,7 @@
 #include <iostream>
 #include <argp.h>
 
-#include "GDBusHandler.h"
+#include "DBusHandler.h"
 
 class Arguments
 {
@@ -12,7 +12,7 @@ private:
     int argc;
     char **args = NULL;
 
-    GDBusHandler *gdBusHandler = NULL;
+    DBusHandler *dBusHandler = NULL;
 
     static error_t parseOptions(int key, char *arg, struct argp_state *state);
     inline static const char *doc = "WayVes - OpenGL-based Audio Visualiser for PipeWire on Wayland";
@@ -20,6 +20,7 @@ private:
     inline static struct argp_option options[] = {
         {"class", 'c', "class-name", 0, "Class Name to target"},
         {"layer", 'z', "layer-value", 0, "Specify the Layer of the Shader Window"},
+        {"instance", 'i', "instance", 0, "Specify the Name of the Instance"},
         {"file", 'f', "file-name", 0, "Specify the Name of the Configuration File"},
         {"exlusive-layer", 'x', "exclusive-layer-value", 0, "Toggle Exclusive Layer"},
         {"left-margin", 'l', "left-margin-value", 0, "Specify the Left Margin"},
@@ -38,12 +39,13 @@ private:
 
     inline static struct argp argParser = {options, parseOptions, NULL, doc};
 
-    bool fileNameWithOtherArgs();
+    bool layoutArgsSpecified();
+    bool configFileNameWithOtherArgs();
 
 public:
     int *marginLeft = NULL, *marginRight = NULL, *marginTop = NULL, *marginBottom = NULL, *anchorLeft = NULL, *anchorRight = NULL,
         *anchorTop = NULL, *anchorBottom = NULL, *layer = NULL, *visibility = NULL, *windowWidth = NULL, *windowHeight = NULL, *exclusiveLayer = NULL;
-    char *className = NULL, *configFileName = NULL, *version = NULL;
+    char *className = NULL, *configFileName = NULL, *version = NULL, *instance = NULL;
 
     Arguments(int argc, char *args[]);
     void signalGApps();

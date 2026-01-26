@@ -13,15 +13,16 @@
 class WindowHandler
 {
 public:
-    std::string appName = "com.r00n1l.";
+    std::string appName = "com.r00n1l.", instance;
     ShaderProgram shaderProgram;
+    void *gtkApplicationInstance = NULL;
 
     void setGtkWindow();
 
     virtual void handleGDBusSignals(GDBusConnection *conn) = 0;
     virtual void disableInputs() = 0;
     virtual void displayWindow() = 0;
-    virtual void setup(GDBusConnection *conn, void *args) = 0;
+    virtual void setup(GDBusConnection *conn, std::string instance, void *args) = 0;
 
 protected:
     GtkWindow *window = NULL;
@@ -50,7 +51,7 @@ public:
 
     void getPaintable(GtkWidget *glArea);
     void handleGDBusSignals(GDBusConnection *conn);
-    void setup(GDBusConnection *conn, void *args);
+    void setup(GDBusConnection *conn, std::string instance, void *args);
     void toggleVisibility(bool newVisibility);
     void disableInputs();
     void displayWindow();
@@ -90,7 +91,7 @@ public:
 
     void handleGDBusSignals(GDBusConnection *conn);
     void setRendererSignals();
-    void setup(GDBusConnection *conn, void *args);
+    void setup(GDBusConnection *conn, std::string instance, void *args);
     void disableInputs();
     void displayWindow();
 };

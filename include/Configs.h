@@ -8,7 +8,7 @@ class Configs
 public:
     ShaderWindowHandler *windowHandler;
     Configs *next = NULL;
-    std::string audioName;
+    std::string audioName, instance;
     int totalAudios = 0;
     std::string directoryPrefix;
 };

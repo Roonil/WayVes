@@ -139,21 +139,32 @@ ConfigsHandler::ConfigsHandler(char *configFileName, std::string directoryPrefix
     prevConfigs->next = NULL;
 }
 
-void ConfigsHandler::initialiseGTKApps()
+void ConfigsHandler::initialiseGTKApps(std::string instance)
 {
+    signal(SIGCHLD, SIG_IGN);
+
     for (int i = 0; i < configsArray[0]->totalAudios; i++)
     {
         int pID = fork();
         if (pID != 0)
+        {
+            childrenPIDs.push_back(pID);
             continue;
+        }
 
         setpgid(0, getppid());
 
-        configsArray[i]->windowHandler->shaderProgram.pipeWireSetting->createPipeWireThread();
-
-        GApplicationHandler gApplicationHandler(configsArray[i]);
+        GApplicationHandler gApplicationHandler(configsArray[i], instance);
         gApplicationHandler.runApp();
 
         break;
+    }
+}
+
+ConfigsHandler::~ConfigsHandler()
+{
+    for (int i = 0; i < childrenPIDs.size(); i++)
+    {
+        kill(childrenPIDs.at(i), SIGTERM);
     }
 }

@@ -19,13 +19,17 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
         arguments->configFileName = arg;
         break;
 
+    case 'i':
+        arguments->instance = arg;
+        break;
+
     case 'v':
         arguments->visibility = new int;
         *arguments->visibility = arg == NULL ? -1 : (int)strtol(arg, NULL, 10);
         break;
 
     case 'V':
-        arguments->version = (char *)"WayVes Version 1.0.1";
+        arguments->version = (char *)"WayVes Version 1.1.0";
         break;
 
     case 'c':
@@ -111,32 +115,36 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-bool Arguments::fileNameWithOtherArgs()
+bool Arguments::layoutArgsSpecified()
+{
+    return anchorBottom != NULL ||
+           anchorTop != NULL ||
+           anchorLeft != NULL ||
+           anchorRight != NULL ||
+           layer != NULL ||
+           marginBottom != NULL ||
+           marginLeft != NULL ||
+           marginRight != NULL ||
+           marginTop != NULL ||
+           visibility != NULL ||
+           windowHeight != NULL ||
+           windowWidth != NULL;
+}
+
+bool Arguments::configFileNameWithOtherArgs()
 {
     return configFileName != NULL &&
-           (anchorBottom != NULL ||
-            anchorTop != NULL ||
-            anchorLeft != NULL ||
-            anchorRight != NULL ||
+           (layoutArgsSpecified() ||
             className != NULL ||
-            layer != NULL ||
-            marginBottom != NULL ||
-            marginLeft != NULL ||
-            marginRight != NULL ||
-            marginTop != NULL ||
-            visibility != NULL ||
-            windowHeight != NULL ||
-            windowWidth != NULL ||
             version != NULL);
 }
 
 void Arguments::signalGApps()
 {
-    if (fileNameWithOtherArgs())
-    {
-        Errors::throwError("Cannot specify Config File along with other Parameters");
-        std::exit(1);
-    }
+    if (configFileNameWithOtherArgs())
+        Errors::throwError("Cannot specify Config File along with other Parameters except for instance");
+
+    // TODO: Handle targeting layout changes under specific instances, so -i instanceName -c ... should apply changes only for shaders under that instance
 
     if (version != NULL)
     {
@@ -144,11 +152,11 @@ void Arguments::signalGApps()
         std::exit(0);
     }
 
-    if (configFileName != NULL || argc == 1)
+    if (configFileName != NULL || instance != NULL || argc == 1)
         return;
 
-    gdBusHandler = new GDBusHandler;
-    gdBusHandler->emitCLIArgs(std::string(className == NULL ? "" : className), args);
+    dBusHandler = new DBusHandler;
+    dBusHandler->emitCLIArgs(std::string(className == NULL ? "" : className), argc, args);
 
     std::exit(0);
 }

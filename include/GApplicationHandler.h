@@ -32,7 +32,7 @@ private:
     static void onBusAcquired(GDBusConnection *conn, const gchar *name, gpointer configs);
 
 public:
-    GApplicationHandler(Configs *configs);
+    GApplicationHandler(Configs *configs, std::string instance);
     void runApp();
     ~GApplicationHandler();
 };

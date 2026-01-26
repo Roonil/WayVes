@@ -11,6 +11,7 @@ class ConfigsHandler
 {
 private:
     std::string configFileName;
+    std::vector<int> childrenPIDs;
 
     bool globalAudioOverridesMatchShaderAudioOverrides(AudioOverride *globalAudioOverride, AudioOverride *shaderAudioOverride);
     bool globalGravitySettingsMatchShaderGravitySettings(GravitySettings *globalGravitySettings, GravitySettings *shaderGravitySettings);
@@ -26,7 +27,8 @@ public:
     std::vector<std::string> classNames;
 
     ConfigsHandler(char *configFileName, std::string directoryPrefix);
-    void initialiseGTKApps();
+    void initialiseGTKApps(std::string instance);
+    ~ConfigsHandler();
 };
 
 #endif
