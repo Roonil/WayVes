@@ -2,7 +2,7 @@
 #define G_APPLICATION_HANDLER_H
 
 #include <gtk/gtk.h>
-#include <gtk-layer-shell/gtk-layer-shell.h>
+#include <gtk4-layer-shell/gtk4-layer-shell.h>
 #include "ShaderProgram.h"
 #include "Configs.h"
 #include "Arguments.h"

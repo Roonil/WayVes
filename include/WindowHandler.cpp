@@ -1,5 +1,5 @@
 #include "WindowHandler.h"
-#include <gtk-layer-shell/gtk-layer-shell.h>
+#include <gtk4-layer-shell/gtk4-layer-shell.h>
 #include <algorithm>
 
 ShaderWindowHandler::ShaderWindowHandler(ShaderProps *shaderProps, PipeWireHandler *pipeWireHandler, AudioShaderStages *audioShaderStages, bool isFirst, std::string directoryPrefix, std::map<std::string, std::string> overridesMap)
