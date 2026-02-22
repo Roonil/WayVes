@@ -29,7 +29,7 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
         break;
 
     case 'V':
-        arguments->version = (char *)"WayVes Version 1.1.0";
+        arguments->version = (char *)"WayVes Version 1.1.2";
         break;
 
     case 'c':
