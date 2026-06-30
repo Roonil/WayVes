@@ -31,7 +31,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -70,7 +71,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 1;
     glow.mixAlpha = 0;
 
-    glow.size = 3.5;
+    glow.size = vec2(3.5);
 
     glow.intensity = 3.5;
     glow.directions = 16.0;

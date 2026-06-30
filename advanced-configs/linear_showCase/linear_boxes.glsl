@@ -8,7 +8,8 @@
 // mergeBars can be used to toggle merging bars
 uniform int mergeBars = 1;
 
-// isLarge is the runtime attribute that we can modify to change the bars' size, multiplier and softnesses when the window size becomes small
+// isLarge is the runtime attribute that we can modify to change the bars' size, multiplier and softnesses when the
+// window size becomes small
 uniform float isLarge = 1;
 
 // --------- Bar Steps (that appear in the background, can be made uniforms as well) ---------
@@ -59,7 +60,8 @@ void init()
 void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
 
-    // Acts as a smoothing filter between higher and lower audio values. Increase W2 to make audio reaction less sensitive.
+    // Acts as a smoothing filter between higher and lower audio values. Increase W2 to make audio reaction less
+    // sensitive.
 
 #define W2 4.3
 #define EW exp(-W2)
@@ -70,10 +72,12 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
     fetchedAudio *= 1. - step(abs(fetchedAudio), .005);
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
     // Makes the bars move as a whole based on the audio, meaning the "bottom" of the bars gets moved up with audio
-    // sign(2 * isLarge - 1) => -1 when isLarge = 0, and 1 when isLarge = 1. Needed because we switch directions based on the layout
+    // sign(2 * isLarge - 1) => -1 when isLarge = 0, and 1 when isLarge = 1. Needed because we switch directions based
+    // on the layout
     barOffset.y = sign(2 * isLarge - 1) * int((barAudio.x + barAudio.y) / audioChunkSize) * stepSpacing;
 }
 
@@ -86,7 +90,8 @@ void setProps()
     bar.size = mix(vec3(9., 5., 0), vec3(12., 10., 0), isLarge);
 
     // Border Size for the bars. 2 at the top, 1 at left and right side each, and 1 at the bottom.
-    // Note that the top and bottom borders do not add to the height of the bar as specified by bar.size, but the left and right borders do.
+    // Note that the top and bottom borders do not add to the height of the bar as specified by bar.size, but the left
+    // and right borders do.
     bar.borderSize = vec3(2, 1, 1);
 
     // Softness for outer and inner edges
@@ -136,7 +141,7 @@ void setGlow0(inout Glow glow)
     glow.directions = 16;
     glow.blendMode = 0;
     glow.mixAlpha = 0;
-    glow.size = 3.5;
+    glow.size = vec2(3.5);
     glow.quality = 3;
     glow.brightnessOffset = .4;
     glow.lightStrength = 1;

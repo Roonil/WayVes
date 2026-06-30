@@ -46,11 +46,12 @@ void defaultGlowValues(inout Glow glow)
     glow.blendMode = 1;
     glow.mixAlpha = 1;
     glow.offsetAngle = 0;
-    glow.size = 10;
+    glow.size = vec2(10);
     glow.intensity = .5;
     glow.directions = 8;
-
+    glow.onTop = 0;
     glow.coords = gl_FragCoord.xy;
+    glow.maxAngle = 360;
 
     glow.quality = 4;
     vec4 color = vec4(0.5, 0.5, 0.5, 1.0);
@@ -75,15 +76,17 @@ void main()
 #expand getGlow postProcessingNumber
 
     vec2 uv = (glow.coords) / resolution.xy;
-    vec4 prevColor = texture(tex, uv);
+    vec4 prevColor = texture(tex, gl_FragCoord.xy / resolution.xy);
 
     vec2 glowRadius = (glow.size) / resolution.xy;
     vec4 Color = vec4(0);
 
     float glowOffsetValue = (float(glow.offsetAngle) / 360.) * TWOPI;
 
-    for (float d = glowOffsetValue; d < TWOPI; d += TWOPI / (glow.directions)) {
-        for (float i = 1.0 / (glow.quality); i <= 1.0; i += 1.0 / (glow.quality)) {
+    for (float d = glowOffsetValue; d < (glow.maxAngle / 360. * TWOPI); d += TWOPI / (glow.directions))
+    {
+        for (float i = 1.0 / (glow.quality); i <= 1.0; i += 1.0 / (glow.quality))
+        {
             vec2 coords = uv + glowRadius * i * vec2(cos(d), sin(d));
 
             if (coords.x > 0 && coords.x < 1 && coords.y > 0 && coords.y < 1)
@@ -95,8 +98,9 @@ void main()
 
     FragColor = (vec4(glow.color.xyz * glow.color.w, glow.color.w)) * glow.intensity * length(Color);
 
-    FragColor = addColors(glow.blendMode, prevColor, FragColor);
+    FragColor = addColors(glow.blendMode, mix(prevColor, FragColor, glow.onTop), mix(FragColor, prevColor, glow.onTop));
+
     FragColor *= glowLightVal(length(FragColor), glow.brightnessOffset, glow.lightStrength);
 
-    FragColor.w = mix(prevColor.w, Color.w, glow.mixAlpha * 0.5);
+    FragColor.w = mix(prevColor.w, FragColor.w, glow.mixAlpha * 0.5);
 }

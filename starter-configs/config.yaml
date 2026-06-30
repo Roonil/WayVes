@@ -29,7 +29,7 @@ audios:
         window-width: 300
         window-height: 300
 
-      #Uncomment to enable the NCS Visualiser
+      # Uncomment to enable the NCS Visualiser
 
       # - name: ncs
       #   atomic-textures: 1
@@ -43,7 +43,29 @@ audios:
       #     - name: glow
       #       passes: 1
 
-      #Uncomment to enable the Chain Visualiser
+      # Uncomment to enable WayVes Logo configuration using the Linear Shader
+      # - name: linear
+      #   config-file: wayves_logo.glsl
+      #   class-name: logo
+      #   audio-overrides:
+      #     gravity-settings:
+      #       gravity-step: 0.5
+      #       average-frames: 15
+      #     smooth-settings:
+      #       smooth-factor: 0.1
+
+      #   anchor-left: true
+      #   anchor-top: true
+      #   margin-left: 1000
+      #   margin-top: 100
+      #   layer: Bottom
+      #   window-width: 400
+      #   window-height: 112
+      #   post-processing:
+      #     - name: glow
+      #       passes: 2
+
+      # Uncomment to enable the Chain Visualiser
       # - name: chain
       #   margin-right: 11
       #   margin-top: 5

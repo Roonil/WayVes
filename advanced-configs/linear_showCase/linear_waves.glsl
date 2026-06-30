@@ -48,7 +48,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
     fetchedAudio *= mix(1., sign(mod(n, 2) * 2 - 1), isSmall);
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -63,7 +64,9 @@ void setProps()
     particle.connector.left.outerSoftness = 1.5;
 
     // Hue interpolation that changes with audio value sampled at 0.3 from the Right Audio Channel.
-    particle.connector.left.color = interpolateHue(mix(vec4(0.0, 0.8353, 1.0, 1.0), vec4(1.0, 0.051, 0.9529, 1.0), 3 * texture(audioR, .3).x), .5, particle.fragment.coords.x, r_resolution.x);
+    particle.connector.left.color =
+        interpolateHue(mix(vec4(0.0, 0.8353, 1.0, 1.0), vec4(1.0, 0.051, 0.9529, 1.0), 3 * texture(audioR, .3).x), .5,
+                       particle.fragment.coords.x, r_resolution.x);
     particle.connector.left.borderColor = vec4(0.2588, 0.2588, 0.2588, 1.0);
 
     // jointMode = 1 to ensure a smooth and continuous look.
@@ -89,7 +92,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 0;
 
     glow.mixAlpha = 1;
-    glow.size = 13.5;
+    glow.size = vec2(13.5);
     glow.quality = 6;
     glow.brightnessOffset = .4;
     glow.lightStrength = .5;

@@ -33,7 +33,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
     fetchedAudio *= 1. - step(abs(fetchedAudio), .005);
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -49,7 +50,10 @@ void setProps()
 
     circle.borderSize = 2;
     circle.outerSoftness = 2.;
-    bar.color = mix(bar.color, interpolateHue(vec4(0.0, 0.8, 1.0, 1.0), (sin(time * 0.1) + 1.) / 2., trackPosition * bar.fragment.n, bar.fragment.lastN), 1. - step(trackPosition, .5 * bar.fragment.currentAngle / PI));
+    bar.color = mix(bar.color,
+                    interpolateHue(vec4(0.0, 0.8, 1.0, 1.0), (sin(time * 0.1) + 1.) / 2.,
+                                   trackPosition * bar.fragment.n, bar.fragment.lastN),
+                    1. - step(trackPosition, .5 * bar.fragment.currentAngle / PI));
 
     bar.size = vec3(0, 6, 0);
 
@@ -72,7 +76,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 0;
     glow.mixAlpha = 0;
 
-    glow.size = 9;
+    glow.size = vec2(9);
     glow.intensity = 3.5;
     glow.directions = 16.0;
     glow.quality = 6.0;

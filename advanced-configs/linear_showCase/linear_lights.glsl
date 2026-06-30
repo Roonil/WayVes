@@ -29,28 +29,33 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 
     // Setting individual offsets for each bar and particle, distinguished by their number (n)
-    if (n == 0) {
+    if (n == 0)
+    {
         particleOffset.y -= 20;
         barOffset.y -= 10;
         barSizeOffset.x -= 10;
     }
 
-    if (n == 1) {
+    if (n == 1)
+    {
         particleOffset.x -= 10;
         barOffset.x -= 10;
         barOffset.y -= 1;
     }
-    if (n == 2) {
+    if (n == 2)
+    {
         particleOffset.x += 13;
         barOffset.x += 13;
         barOffset.y -= 1;
     }
 
-    if (n == 3) {
+    if (n == 3)
+    {
         particleOffset.x += 10;
         barOffset.x += 10;
         barSizeOffset.x += 10;
@@ -105,7 +110,8 @@ void setProps()
     particle.connector.left.color = vec4(0.7216, 0.6863, 0.5961, 0.533);
     particle.connector.left.borderColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-    // Connector jointMode. 1 means a smooth, continuous segment when encountering the "merger" of the connectors at the particle's center
+    // Connector jointMode. 1 means a smooth, continuous segment when encountering the "merger" of the connectors at the
+    // particle's center
     particle.connector.jointMode = 1;
 
     // Softness for inner and outer edges of the connectors
@@ -121,23 +127,34 @@ void setProps()
     float lightBeamWidth = 6;
     float lightBeamHeight = 120;
 
-    // Represents the beam of "light" that goes ahead in time and gets displaced with audio. Between 0 and 1, because smoothstep's return value is confined to this range. Similar to a wave equation with phase (wt - kx)
-    float lineLightBeam = (1. - smoothstep(0, lightBeamWidth + 10 * lowFreqAudio, abs(mod(.5 * time, r_resolution.x) - particle.fragment.coords.x + ((200 * lowFreqAudio)))));
+    // Represents the beam of "light" that goes ahead in time and gets displaced with audio. Between 0 and 1, because
+    // smoothstep's return value is confined to this range. Similar to a wave equation with phase (wt - kx)
+    float lineLightBeam =
+        (1. - smoothstep(0, lightBeamWidth + 10 * lowFreqAudio,
+                         abs(mod(.5 * time, r_resolution.x) - particle.fragment.coords.x + ((200 * lowFreqAudio)))));
 
     // We "mix" in the height of the connector based on the lineLightBeam value
-    particle.connector.left.height = mix(particle.connector.left.height, lightBeamHeight * lineLightBeam, texture(audioR, particle.fragment.coords.x / r_resolution.x).x);
+    particle.connector.left.height = mix(particle.connector.left.height, lightBeamHeight * lineLightBeam,
+                                         texture(audioR, particle.fragment.coords.x / r_resolution.x).x);
 
     // Similarly, we increase the inner and outer softness values based on lineLightBeam value.
     particle.connector.left.innerSoftness = mix(particle.connector.left.innerSoftness, 56., (1. - lineLightBeam));
-    particle.connector.left.outerSoftness = mix(particle.connector.left.outerSoftness, 9., lowFreqAudio * (1. - lineLightBeam));
+    particle.connector.left.outerSoftness =
+        mix(particle.connector.left.outerSoftness, 9., lowFreqAudio * (1. - lineLightBeam));
 
-    // For the very first particle, ensure that connector does not show when it is "behind" the particle. This is needed because as the connector's height increases with audio, the connector is supposed to appear "behind" the particle simply because it has a large size. Try disabling lightBeam and increasing connectorHeight to observe this.
-    if (particle.fragment.n == 0 && (particle.fragment.coords.x < particle.fragment.centerCoords.x)) {
+    // For the very first particle, ensure that connector does not show when it is "behind" the particle. This is needed
+    // because as the connector's height increases with audio, the connector is supposed to appear "behind" the particle
+    // simply because it has a large size. Try disabling lightBeam and increasing connectorHeight to observe this.
+    if (particle.fragment.n == 0 && (particle.fragment.coords.x < particle.fragment.centerCoords.x))
+    {
         particle.connector.left.height = 0;
     }
 
-    // Similarly, we ensure the same for the last particle, ensuring that the connector does not draw "after" the particle.
-    else if (particle.fragment.n == particle.fragment.lastN && particle.fragment.coords.x > particle.fragment.centerCoords.x) {
+    // Similarly, we ensure the same for the last particle, ensuring that the connector does not draw "after" the
+    // particle.
+    else if (particle.fragment.n == particle.fragment.lastN &&
+             particle.fragment.coords.x > particle.fragment.centerCoords.x)
+    {
         particle.connector.left.height = 0;
     }
 
@@ -152,7 +169,8 @@ void setParticleDownProps()
 void modifySDFs()
 {
     // See the wiki for more details.
-    // Sets the Z-Index for objects within the upper particle group, such that the particles appear at the top of the connectors (the inner body of the particles as well as their borders)
+    // Sets the Z-Index for objects within the upper particle group, such that the particles appear at the top of the
+    // connectors (the inner body of the particles as well as their borders)
     setParticleUpGroupZIndex(2, 3, 4, 5, 6, 0, 1);
     setParticleUpGroupCBM(0, 0, 0, 0, 0, 0, 0);
     applyZOrders();
@@ -166,7 +184,7 @@ void setGlow0(inout Glow glow)
     glow.directions = 2;
     glow.blendMode = 0;
     glow.mixAlpha = 0;
-    glow.size = 80;
+    glow.size = vec2(80);
     glow.quality = 12;
     glow.brightnessOffset = .0;
 
@@ -174,20 +192,23 @@ void setGlow0(inout Glow glow)
     glow.lightStrength = mix(.4, 1. - smoothstep(130, 280, glow.coords.x), 1. - smoothstep(0, 130, glow.coords.x));
 }
 
-// Second glow pass. Very expensive because of the quality and directions. Gives the spherical halo much more prominence.
+// Second glow pass. Very expensive because of the quality and directions. Gives the spherical halo much more
+// prominence.
 void setGlow1(inout Glow glow)
 {
-    // Intensity changes with audio, so the "lights" appear to grow brighter with audio sampled at 0.4 from the Right Audio Channel.
+    // Intensity changes with audio, so the "lights" appear to grow brighter with audio sampled at 0.4 from the Right
+    // Audio Channel.
     glow.intensity = clamp(.5 + 3 * texture(audioR, .4).x, 0, 2);
 
     glow.color = vec4(0.8196, 0.7059, 0.051, 1.0);
     glow.directions = 64;
     glow.blendMode = 0;
     glow.mixAlpha = 0;
-    glow.size = 60.5;
+    glow.size = vec2(60.5);
     glow.quality = 12;
     glow.brightnessOffset = .4;
 
-    // Adjusting lightStrength so it increases gradually as we go from the bottom of the bars and towards the "lights" or particles
+    // Adjusting lightStrength so it increases gradually as we go from the bottom of the bars and towards the "lights"
+    // or particles
     glow.lightStrength = smoothstep(0., 120., glow.coords.x);
 }

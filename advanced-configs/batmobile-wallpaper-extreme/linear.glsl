@@ -39,7 +39,9 @@ void init()
     audioSettings.mode = 1;
     particle.audio.multiplier = amplify;
     bar.audio.multiplier = amplify;
-    int barGroupCount = int(mix(mix(mix(mix(2, 4, step(bar.fragment.n, 35)), 7, step(bar.fragment.n, 24)), 8, step(bar.fragment.n, 18)), 3, step(bar.fragment.n, 4.)));
+    int barGroupCount =
+        int(mix(mix(mix(mix(2, 4, step(bar.fragment.n, 35)), 7, step(bar.fragment.n, 24)), 8, step(bar.fragment.n, 18)),
+                3, step(bar.fragment.n, 4.)));
     bar.mergeLeftBar = 1 - int(step(mod(bar.fragment.n, barGroupCount), 0));
     bar.mergeRightBar = 1 - int(step(barGroupCount - 1, mod(bar.fragment.n, barGroupCount)));
 
@@ -48,16 +50,18 @@ void init()
 
 void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
-#define W2 weight* weight
+#define W2 weight *weight
 #define EW exp(-W2)
 
     float d = 1. - fetchedAudio;
 
-    fetchedAudio = (alternateAmplitude ? sign(mod(int(n), 2) * 2 - 1) : 1) * (!audioExponentiate ? fetchedAudio : (exp(-d * d * W2) - EW) * (W2));
+    fetchedAudio = (alternateAmplitude ? sign(mod(int(n), 2) * 2 - 1) : 1) *
+                   (!audioExponentiate ? fetchedAudio : (exp(-d * d * W2) - EW) * (W2));
     fetchedAudio *= 1. - step(abs(fetchedAudio), .005);
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -106,7 +110,9 @@ void setProps()
 
     bar.offset.y = 95;
 
-    bar.color = mix(mix(vec4(0.0392, 0.0118, 0.0784, 0.301), vec4(0.6627, 0.0706, 0.1686, 0.351), clamp(2. * abs(.5 - bar.fragment.coords.x / resolution.x) / 3., 0, 1)), vec4(0.0, 0.0, 0.0, 0.738), barSide);
+    bar.color = mix(mix(vec4(0.0392, 0.0118, 0.0784, 0.301), vec4(0.6627, 0.0706, 0.1686, 0.351),
+                        clamp(2. * abs(.5 - bar.fragment.coords.x / resolution.x) / 3., 0, 1)),
+                    vec4(0.0, 0.0, 0.0, 0.738), barSide);
     bar.borderColor = mix(vec4(1.0, 0.6706, 0.8353, 1.0), vec4(1), barSide);
 
     bar.downCap.enable = true;
@@ -119,7 +125,8 @@ void setProps()
     bar.downCap.size.y = mix(1., 2., barSide);
     bar.downCap.softness = mix(vec3(0), vec3(.5), barSide);
     bar.downCap.offset = vec2(0);
-    bar.downCap.color = mix(vec4(0.6471, 0.1176, 0.9294, 0.775), vec4(0.1176, 0.7608, 0.9569, 0.863), clamp(.8 * abs(bar.audio.current.x / bar.fragment.coords.y), 0, 1));
+    bar.downCap.color = mix(vec4(0.6471, 0.1176, 0.9294, 0.775), vec4(0.1176, 0.7608, 0.9569, 0.863),
+                            clamp(.8 * abs(bar.audio.current.x / bar.fragment.coords.y), 0, 1));
 }
 
 void setParticleDownProps()
@@ -141,7 +148,7 @@ void setGlow0(inout Glow glow)
     glow.directions = 16;
     glow.blendMode = 0;
     glow.mixAlpha = 0;
-    glow.size = glowSize0;
+    glow.size = vec2(glowSize0);
     glow.quality = 3;
     glow.brightnessOffset = .4;
     glow.lightStrength = 1;
@@ -151,7 +158,7 @@ void setRotate0(inout Rotate rotate)
 {
 
 #define tstWt 1.3
-#define tW2 tstWt* tstWt
+#define tW2 tstWt *tstWt
 #define tEW exp(-tW2)
 #define dT (1. - texture(audioR, .06).x)
 

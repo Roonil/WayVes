@@ -34,7 +34,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
     fetchedAudio *= 1. - step(abs(fetchedAudio), .005);
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -95,7 +96,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 0;
     glow.mixAlpha = 0;
 
-    glow.size = 9;
+    glow.size = vec2(9);
     glow.intensity = 4.5;
     glow.directions = 16.0;
     glow.quality = 6.0;
@@ -107,7 +108,7 @@ void setGlow0(inout Glow glow)
 void setRotate0(inout Rotate rotate)
 {
 #define tstWt 1.3
-#define tW2 tstWt* tstWt
+#define tW2 tstWt *tstWt
 #define tEW exp(-tW2)
 #define dT (1. - texture(audioR, .06).x)
 

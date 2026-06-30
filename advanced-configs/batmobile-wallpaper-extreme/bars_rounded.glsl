@@ -25,7 +25,8 @@ void init()
     audioSettings.combineChannels = 1;
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -62,7 +63,7 @@ void modifySDFs()
 
 void setGlow0(inout Glow glow)
 {
-    glow.size = 3.5;
+    glow.size = vec2(3.5);
     glow.directions = 16;
     glow.color = vec4(0.9529, 0.2431, 0.2157, 1.0);
     glow.brightnessOffset = .4;

@@ -33,7 +33,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
 }
 
@@ -63,7 +64,8 @@ void modifySDFs()
 {
 
     float w = abs(bar.fragment.span);
-    sdfs[BAR_BG_SDF] = 1. - smoothstep((bar.audio.current.y) - 150.4, (bar.audio.current.y), bar.fragment.distanceFromCenter - circle.radius - 50);
+    sdfs[BAR_BG_SDF] = 1. - smoothstep((bar.audio.current.y) - 150.4, (bar.audio.current.y),
+                                       bar.fragment.distanceFromCenter - circle.radius - 50);
 
     sdfs[BAR_BG_SDF] *= 3. * bar.audio.current.y / bar.audio.multiplier;
 
@@ -72,7 +74,8 @@ void modifySDFs()
 
     applyZOrders();
 
-    sdfs[BAR_BG_SDF] *= (1. - sdfs[BAR_OUTER_SDF]) * (1. - sdfs[BAR_INNER_SDF]) * (1 - sdfs[CIRCLE_INNER_SDF]) * (1 - sdfs[CIRCLE_OUTER_SDF]);
+    sdfs[BAR_BG_SDF] *= (1. - sdfs[BAR_OUTER_SDF]) * (1. - sdfs[BAR_INNER_SDF]) * (1 - sdfs[CIRCLE_INNER_SDF]) *
+                        (1 - sdfs[CIRCLE_OUTER_SDF]);
 }
 
 void setGlow0(inout Glow glow)
@@ -80,7 +83,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 1;
     glow.mixAlpha = 0;
 
-    glow.size = 90;
+    glow.size = vec2(90);
     glow.offsetAngle = 270;
     glow.intensity = 1.5;
     glow.directions = 4.0;

@@ -55,7 +55,7 @@ void setGlow0(inout Glow glow)
     glow.blendMode = 0;
     glow.mixAlpha = 0;
 
-    glow.size = 7;
+    glow.size = vec2(7);
     glow.directions = 16.0;
     glow.quality = 6.0;
     glow.color = vec4(0.5412, 0.0, 0.4235, 1);

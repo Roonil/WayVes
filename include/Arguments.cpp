@@ -1,7 +1,7 @@
 #include "Arguments.h"
 #include "Errors.h"
 
-Arguments::Arguments(int argc, char *args[])
+Arguments::Arguments(int argc, char* args[])
 {
     this->argc = argc;
     this->args = args;
@@ -9,12 +9,11 @@ Arguments::Arguments(int argc, char *args[])
     argp_parse(&argParser, argc, args, 0, 0, this);
 }
 
-error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
+error_t Arguments::parseOptions(int key, char* arg, struct argp_state* state)
 {
 
-    Arguments *arguments = (Arguments *)state->input;
-    switch (key)
-    {
+    Arguments* arguments = (Arguments*)state->input;
+    switch (key) {
     case 'f':
         arguments->configFileName = arg;
         break;
@@ -29,7 +28,7 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
         break;
 
     case 'V':
-        arguments->version = (char *)"WayVes Version 1.1.2";
+        arguments->version = (char*)"WayVes Version 1.1.3";
         break;
 
     case 'c':
@@ -117,26 +116,12 @@ error_t Arguments::parseOptions(int key, char *arg, struct argp_state *state)
 
 bool Arguments::layoutArgsSpecified()
 {
-    return anchorBottom != NULL ||
-           anchorTop != NULL ||
-           anchorLeft != NULL ||
-           anchorRight != NULL ||
-           layer != NULL ||
-           marginBottom != NULL ||
-           marginLeft != NULL ||
-           marginRight != NULL ||
-           marginTop != NULL ||
-           visibility != NULL ||
-           windowHeight != NULL ||
-           windowWidth != NULL;
+    return anchorBottom != NULL || anchorTop != NULL || anchorLeft != NULL || anchorRight != NULL || layer != NULL || marginBottom != NULL || marginLeft != NULL || marginRight != NULL || marginTop != NULL || visibility != NULL || windowHeight != NULL || windowWidth != NULL;
 }
 
 bool Arguments::configFileNameWithOtherArgs()
 {
-    return configFileName != NULL &&
-           (layoutArgsSpecified() ||
-            className != NULL ||
-            version != NULL);
+    return configFileName != NULL && (layoutArgsSpecified() || className != NULL || version != NULL);
 }
 
 void Arguments::signalGApps()
@@ -146,8 +131,7 @@ void Arguments::signalGApps()
 
     // TODO: Handle targeting layout changes under specific instances, so -i instanceName -c ... should apply changes only for shaders under that instance
 
-    if (version != NULL)
-    {
+    if (version != NULL) {
         std::cout << version << "\n";
         std::exit(0);
     }

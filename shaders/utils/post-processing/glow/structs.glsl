@@ -1,4 +1,5 @@
-struct Glow {
+struct Glow
+{
     // Adds a Glowing Effect to the final output of the Shader.
 
     // Blend mode for the glow effect. 0 = Additive, 1 = Overlay
@@ -13,9 +14,13 @@ struct Glow {
     float offsetAngle;
     // Example: 90
 
+    // Max Angle (in degrees) for Glow directions
+    float maxAngle;
+    // Example: 360
+
     // Size of the Glow
-    float size;
-    // Example: 10
+    vec2 size;
+    // Example: vec2(10,10)
 
     // Intensity of the Glow
     float intensity;
@@ -23,6 +28,7 @@ struct Glow {
 
     // Number of directions that are sampled radially. Higher is expensive.
     float directions;
+    // Example: 4
 
     // The coordinates of the current Pixel/Fragment being processed. Can be modified.
     vec2 coords;
@@ -30,6 +36,7 @@ struct Glow {
 
     // Quality of Glow. Higher is expensive.
     float quality;
+    // Example: 8
 
     // Overlay color for the Glow Effect
     vec4 color;
@@ -42,4 +49,8 @@ struct Glow {
     // Brightens or darkens the opacity of the final Color
     float lightStrength;
     // Example: .5
+
+    // Whether to stack glow on top or below the sampled output
+    float onTop;
+    // Example: 0
 };

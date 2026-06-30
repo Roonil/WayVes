@@ -32,7 +32,8 @@ void audioFetch(inout float fetchedAudio, float n, float lastN)
 {
 }
 
-void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset, vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
+void setOffsets(float direction, inout vec2 particleOffset, inout vec2 barOffset, inout vec2 barSizeOffset,
+                vec2 barAudio, vec2 particleAudio, float xCoordinate, float n, float lastN)
 {
     // Offseting bar so it appears slightly out-of-place with the particle
     barOffset.y += 90 - r_resolution.y / 2.;
@@ -101,7 +102,7 @@ void setGlow0(inout Glow glow)
     glow.mixAlpha = 0;
 
     // Glow size changes based on visualiserMode
-    glow.size = mix(5., 18.5, float(sign(visualiserMode)));
+    glow.size = vec2(mix(5., 18.5, float(sign(visualiserMode))));
     glow.quality = 6;
 
     // Makes the outer edges glow significantly more
