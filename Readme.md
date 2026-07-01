@@ -1,8 +1,11 @@
 # WayVes
 
-![WayVes Logo](/assets/logo.webp)
+<figure>
+  <img src="assets/logo.webp" alt="WayVes Logo">
+  <figcaption>Rendered in 60 FPS using WayVes</figcaption>
+</figure>
 
-
+---
 WayVes (**Way**land **V**isualis**e**r**s**) is an OpenGL-driven Visualiser Framework for Linux, on Wayland. Utilises PipeWire to capture Audio Data from Input or Output Devices, and displays the Visuals using the Wayland Layer Shell Protocol, specifically the GTK4 implementation of the Protocol.
 
 ## Getting Started
