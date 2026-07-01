@@ -2,7 +2,7 @@
 
 <figure>
   <img src="assets/logo.webp" alt="WayVes Logo">
-  <figcaption>Rendered in 60 FPS using WayVes</figcaption>
+  <figcaption>Rendered at 60 FPS using WayVes</figcaption>
 </figure>
 
 ---
