@@ -2,7 +2,8 @@
 
 <figure>
   <img src="assets/logo.webp" alt="WayVes Logo">
-  <figcaption>Rendered at 60 FPS using WayVes</figcaption>
+  <figcaption>Rendered at 60 FPS using WayVes, <a href="starter-configs/wayves_logo.glsl">Configuration file here</a>
+</figcaption>
 </figure>
 
 ---
@@ -17,6 +18,7 @@ Check out the WayVes Wiki <a href="https://roonil.github.io">here</a>
 - Multiple Visualiser types: NCS, Linear, Angular and Chain
 - Modular Configuration specification via YAML
 - Advanced Customisability for each Visualiser type
+- Hot-reload for GLSL files: Watch your visual changes update in real-time!
 - Full control over various Audio capturing and transformation properties
 - Supports real-time property updates for the Visualisers using Named Pipes
 - Separate Post-Processing Configuration to chain multiple effects
