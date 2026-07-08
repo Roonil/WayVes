@@ -1,6 +1,7 @@
 #ifndef SHADER_PROGRAM_H
 #define SHADER_PROGRAM_H
 
+// clang-format off
 #include <epoxy/gl.h>
 #include <vector>
 #include <gtk/gtk.h>
@@ -9,12 +10,14 @@
 #include "ShaderStage.h"
 #include "AudioShaderStages.h"
 #include "ShaderFiles.h"
+#include "FilesWatcher.h"
 #include "Files.h"
+#include <memory>
+// clang-format on
 
-class ShaderProgram
-{
+class ShaderProgram {
 private:
-    void initializeShaders(GtkGLArea *area);
+    void initializeShaders(GtkGLArea* area);
 
 public:
     bool shouldRender = true, renderAudio = false, audioLoaded = false,
@@ -22,29 +25,30 @@ public:
 
     int ticks = 0, fps = 60;
     unsigned int prevStageTexture;
+    FilesWatcher* filesWatcherInstance = NULL;
 
     GLuint *atomicImageTexture = NULL, *imageTexture = NULL;
 
-    std::map<std::string, std::string> uniformValues = {};
-    std::map<std::string, int> uniformTypes = {};
+    std::map<std::string, std::string> uniformValues = { };
+    std::map<std::string, int> uniformTypes = { };
 
-    ShaderProps *shaderProps = NULL;
+    ShaderProps* shaderProps = NULL;
 
-    PaintableShaderProps *paintableShaderConfig = NULL;
+    PaintableShaderProps* paintableShaderConfig = NULL;
 
-    Files *files = NULL;
+    Files* files = NULL;
 
-    ShaderStage *startStage = NULL;
+    ShaderStage* startStage = NULL;
 
-    PipeWireHandler *pipeWireSetting;
+    PipeWireHandler* pipeWireSetting;
 
-    AudioShaderStages *audioShaderStages;
+    AudioShaderStages* audioShaderStages;
 
     void applyAudioTransformations();
     void loadAudioShaders();
 
-    gboolean realize(GtkGLArea *area);
-    gboolean render(GtkGLArea *area);
+    gboolean realize(GtkGLArea* area);
+    gboolean render(GtkGLArea* area);
 };
 
 #endif

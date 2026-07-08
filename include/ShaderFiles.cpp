@@ -8,50 +8,45 @@ std::string ShaderFiles::LoadFile(std::string fileName)
     std::ifstream shaderFile;
 
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try
-    {
+    try {
         shaderFile.open(directoryPrefix + fileName);
         std::stringstream shaderStream, fShaderStream;
         shaderStream << shaderFile.rdbuf();
         shaderFile.close();
         shaderCode = shaderStream.str();
-    }
-    catch (std::ifstream::failure &e)
-    {
+    } catch (std::ifstream::failure& e) {
         return "";
     }
+
+    includedFiles.insert(directoryPrefix + fileName);
 
     return shaderCode;
 }
 
 std::size_t ShaderFiles::getIdx(std::string line, std::size_t startIdx, bool isSpace)
 {
-    while ((line[startIdx - 1] != '\0' && (isSpace ? (isspace(line[startIdx - 1])) : (!isspace(line[startIdx - 1])))))
-    {
+    while ((line[startIdx - 1] != '\0' && (isSpace ? (isspace(line[startIdx - 1])) : (!isspace(line[startIdx - 1]))))) {
         startIdx++;
     }
 
     return startIdx;
 }
 
-std::string ShaderFiles::process_variable_replacement(std::string contentString, const std::map<std::string, std::string> variables, std::map<std::string, int> &vars)
+std::string ShaderFiles::process_variable_replacement(std::string contentString, const std::map<std::string, std::string> variables, std::map<std::string, int>& vars)
 {
-    const char *define_directive = "#define";
+    const char* define_directive = "#define";
 
     std::string result = "";
     std::istringstream f(contentString);
     std::string line;
 
-    while (std::getline(f, line))
-    {
+    while (std::getline(f, line)) {
         std::size_t lineLength = line.length();
         std::string::size_type start_pos = 0;
 
         std::string modifiedLine = line + "\n";
 
-        while (std::string::npos !=
-               (start_pos = line.find(define_directive, start_pos)))
-        {
+        while (std::string::npos != (start_pos = line.find(define_directive, start_pos))) {
 
             std::size_t defineIdx = start_pos + strlen(define_directive) - 1;
 
@@ -71,30 +66,21 @@ std::string ShaderFiles::process_variable_replacement(std::string contentString,
 
             auto it = variables.find(variableName);
 
-            if (it != variables.end())
-            {
+            if (it != variables.end()) {
                 std::string overridenVariableValue = it->second.data();
                 std::string newLine = line.substr(0, defineIdx) + variableName + " " + overridenVariableValue + "\n";
                 modifiedLine = newLine;
 
-                try
-                {
+                try {
                     vars[variableName] = stoi(overridenVariableValue);
-                }
-                catch (std::exception &err)
-                {
+                } catch (std::exception& err) {
                     break;
                 }
-            }
-            else
-            {
-                try
-                {
+            } else {
+                try {
                     std::string variableValue = line.substr(variableValueStartIdx - 1, variableValueEndIdx - variableValueStartIdx + 1);
                     vars[variableName] = stoi(variableValue);
-                }
-                catch (std::exception &err)
-                {
+                } catch (std::exception& err) {
                     break;
                 }
             }
@@ -114,38 +100,33 @@ std::string ShaderFiles::extractDirectory(std::string fileName, bool isFile)
     std::vector<std::string> tokens;
     char delimiter = '/';
 
-    while (std::getline(ss, token, delimiter))
-    {
+    while (std::getline(ss, token, delimiter)) {
         tokens.push_back(token);
     }
 
     std::vector<std::string> directoryVector;
 
-    for (int i = 0; i < tokens.size(); i++)
-    {
+    for (int i = 0; i < tokens.size(); i++) {
         if (!isFile && i == tokens.size() - 1)
             continue;
 
-        if (tokens.at(i) == "..")
-        {
+        if (tokens.at(i) == "..") {
             if (!directoryVector.empty())
                 directoryVector.pop_back();
-        }
-        else
+        } else
             directoryVector.push_back(tokens.at(i) + (i == tokens.size() - 1 ? "" : "/"));
     }
 
     std::string directory = "";
 
-    for (const auto &t : directoryVector)
-    {
+    for (const auto& t : directoryVector) {
         directory += t;
     }
 
     return directory;
 }
 
-std::string ShaderFiles::process_includes(std::string content, std::string directory, std::string configName, std::map<std::string, std::string> &overridesMap, std::map<std::string, int> &vars)
+std::string ShaderFiles::process_includes(std::string content, std::string directory, std::string configName, std::map<std::string, std::string>& overridesMap, std::map<std::string, int>& vars)
 {
     if (content.empty())
         return "";
@@ -154,14 +135,11 @@ std::string ShaderFiles::process_includes(std::string content, std::string direc
     std::string result = "", wildCardName = ":$CONFIGFILE";
     std::istringstream f(content);
     std::string line;
-    while (std::getline(f, line))
-    {
+    while (std::getline(f, line)) {
         std::string::size_type start_pos = 0;
         std::string modifiedLine = line + "\n";
 
-        while (std::string::npos !=
-               (start_pos = line.find(include_directive, start_pos)))
-        {
+        while (std::string::npos != (start_pos = line.find(include_directive, start_pos))) {
             std::string::size_type startIdx = line.find("\"", start_pos);
             if (startIdx == std::string::npos)
                 break;
@@ -172,14 +150,12 @@ std::string ShaderFiles::process_includes(std::string content, std::string direc
 
             std::string fileName = line.substr(startIdx + 1, endIdx - startIdx - 1);
 
-            if (fileName == wildCardName)
-            {
+            if (fileName == wildCardName) {
                 fileName = configName;
                 directory = "";
             }
 
-            else if (fileName == wildCardName.substr(1))
-            {
+            else if (fileName == wildCardName.substr(1)) {
                 fileName = configName;
             }
 
@@ -187,8 +163,7 @@ std::string ShaderFiles::process_includes(std::string content, std::string direc
             {
 
                 fileName = fileName.substr(1);
-            }
-            else
+            } else
                 fileName = directory + fileName; // Relative Import
 
             fileName = extractDirectory(fileName, true);
@@ -211,7 +186,7 @@ std::string ShaderFiles::process_includes(std::string content, std::string direc
     return result;
 }
 
-std::string ShaderFiles::process_expands(std::string content, const std::map<std::string, int> &variables, std::string errorContext)
+std::string ShaderFiles::process_expands(std::string content, const std::map<std::string, int>& variables, std::string errorContext)
 {
 
     if (content.empty())
@@ -222,15 +197,12 @@ std::string ShaderFiles::process_expands(std::string content, const std::map<std
     std::istringstream f(content);
     std::string line;
 
-    while (std::getline(f, line))
-    {
+    while (std::getline(f, line)) {
         std::size_t lineLength = line.length();
         std::string::size_type start_pos = 0;
         std::string modifiedLine = line + "\n";
 
-        while (std::string::npos !=
-               (start_pos = line.find(expand_directive, start_pos)))
-        {
+        while (std::string::npos != (start_pos = line.find(expand_directive, start_pos))) {
 
             std::size_t expandIdx = start_pos + expand_directive.length() - 1;
             expandIdx = getIdx(line, expandIdx, false);
@@ -256,15 +228,11 @@ std::string ShaderFiles::process_expands(std::string content, const std::map<std
             if (std::isdigit(valueString[0]))
                 value = stoi(valueString);
 
-            else
-            {
+            else {
                 auto it = variables.find(valueString);
-                if (it != variables.end())
-                {
+                if (it != variables.end()) {
                     value = it->second;
-                }
-                else
-                {
+                } else {
                     Errors::throwError("Variable '" + valueString + "' not found for expansion.", errorContext, "In");
                     break;
                 }
@@ -272,8 +240,7 @@ std::string ShaderFiles::process_expands(std::string content, const std::map<std
 
             std::string expandedFunctionString = "";
 
-            for (int i = 0; i < value; i++)
-            {
+            for (int i = 0; i < value; i++) {
                 expandedFunctionString += functionName;
                 expandedFunctionString += "(";
                 expandedFunctionString += std::to_string(i);
@@ -290,35 +257,27 @@ std::string ShaderFiles::process_expands(std::string content, const std::map<std
     return result;
 }
 
-void ShaderFiles::LoadShaders(std::string shaderName, std::string configName, std::string directoryPrefix, enum ShaderTypes shaderType, std::map<std::string, std::string> overridesMap, std::map<std::string, int> vars)
+void ShaderFiles::reloadFile()
 {
-    this->directoryPrefix = directoryPrefix;
-
-    ShaderFiles *fileContent = this, *prevFile = NULL;
     std::string directory;
-    int idx = 1;
 
     std::string shaderStringFormat = "";
 
-    switch (shaderType)
-    {
+    switch (shaderType) {
 
-    case VERTEX:
-    {
+    case VERTEX: {
         directory = (shaderName + "/vertex/");
         shaderStringFormat = ".vert";
         break;
     }
-    case FRAGMENT:
-    {
+    case FRAGMENT: {
         directory = (shaderName + "/fragment/");
         shaderStringFormat = ".frag";
 
         break;
     }
 
-    case COMPUTE:
-    {
+    case COMPUTE: {
         directory = (shaderName + "/compute/");
         shaderStringFormat = ".comp";
         break;
@@ -327,18 +286,69 @@ void ShaderFiles::LoadShaders(std::string shaderName, std::string configName, st
     default:
         break;
     }
-    do
-    {
 
-        fileContent->fileContent = LoadFile(std::string(directory + std::to_string(idx) + shaderStringFormat));
+    fileContent = LoadFile(std::string(directory + std::to_string(index) + shaderStringFormat));
 
-        if (fileContent->fileContent.empty())
-        {
+    if (fileContent.empty()) {
+        if (index == 1 && shaderType == ShaderTypes::FRAGMENT)
+            Errors::throwError("Shader '" + shaderName + "' not found.", "", "");
+
+        return;
+    }
+
+    fileContent = process_includes(fileContent, directory, configName, overridesMap, vars);
+    fileContent = process_expands(fileContent, vars, shaderName);
+}
+
+void ShaderFiles::loadShaders(std::string shaderName, std::string configName, std::string directoryPrefix, enum ShaderTypes shaderType, std::map<std::string, std::string> overridesMap, std::map<std::string, int> vars)
+{
+
+    ShaderFiles *shaderFile = this, *prevFile = NULL;
+    std::string directory;
+    int idx = 1;
+
+    std::string shaderStringFormat = "";
+
+    switch (shaderType) {
+
+    case VERTEX: {
+        directory = (shaderName + "/vertex/");
+        shaderStringFormat = ".vert";
+        break;
+    }
+    case FRAGMENT: {
+        directory = (shaderName + "/fragment/");
+        shaderStringFormat = ".frag";
+
+        break;
+    }
+
+    case COMPUTE: {
+        directory = (shaderName + "/compute/");
+        shaderStringFormat = ".comp";
+        break;
+    }
+
+    default:
+        break;
+    }
+    do {
+        shaderFile->directoryPrefix = directoryPrefix;
+        shaderFile->shaderName = shaderName;
+        shaderFile->configName = configName;
+        shaderFile->directoryPrefix = directoryPrefix;
+        shaderFile->shaderType = shaderType;
+        shaderFile->overridesMap = overridesMap;
+        shaderFile->vars = vars;
+        shaderFile->index = idx;
+
+        shaderFile->fileContent = shaderFile->LoadFile(std::string(directory + std::to_string(idx) + shaderStringFormat));
+
+        if (shaderFile->fileContent.empty()) {
             if (idx == 1 && shaderType == ShaderTypes::FRAGMENT)
                 Errors::throwError("Shader '" + shaderName + "' not found.", "", "");
 
-            if (prevFile != NULL)
-            {
+            if (prevFile != NULL) {
                 free(prevFile->next);
                 prevFile->next = NULL;
             }
@@ -346,12 +356,12 @@ void ShaderFiles::LoadShaders(std::string shaderName, std::string configName, st
             return;
         }
 
-        fileContent->fileContent = process_includes(fileContent->fileContent, directory, configName, overridesMap, vars);
-        fileContent->fileContent = process_expands(fileContent->fileContent, vars, shaderName);
+        shaderFile->fileContent = shaderFile->process_includes(shaderFile->fileContent, directory, configName, overridesMap, vars);
+        shaderFile->fileContent = shaderFile->process_expands(shaderFile->fileContent, vars, shaderName);
 
-        fileContent->next = new ShaderFiles;
-        prevFile = fileContent;
-        fileContent = fileContent->next;
+        shaderFile->next = new ShaderFiles;
+        prevFile = shaderFile;
+        shaderFile = shaderFile->next;
         idx++;
     } while (true);
 }

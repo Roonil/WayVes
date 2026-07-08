@@ -1,17 +1,21 @@
 #include "ShaderStage.h"
+
 #include "AudioShaderStages.h"
 
-void AudioShaderStage::compile(std::string vertexShaderSource, std::string fragmentShaderSource)
+void AudioShaderStage::compile(ShaderFiles* vertexShaderFiles, ShaderFiles* fragmentShaderFiles)
 {
-    VertexShaderCompilationArgs *vertexArgs = new VertexShaderCompilationArgs(0, 0, &glProgram, &uniformLocations, NULL, NULL);
-    vertexShader = new VertexShader(vertexShaderSource, vertexArgs);
+    VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, &glProgram, &uniformLocations, NULL, NULL);
+    vertexShader = new VertexShader(vertexShaderFiles == NULL ? "" : vertexShaderFiles->fileContent, vertexArgs);
 
-    std::map<std::string, std::string> uniformValues = {};
-    std::map<std::string, int> uniformTypes = {};
+    std::map<std::string, std::string> uniformValues = { };
+    std::map<std::string, int> uniformTypes = { };
 
-    FragmentShaderCompilationArgs *args = new FragmentShaderCompilationArgs(0, 0, &glProgram, &uniformLocations, &uniformValues, &uniformTypes);
+    FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, &glProgram, &uniformLocations, &uniformValues, &uniformTypes);
 
-    fragmentShader = new FragmentShader(fragmentShaderSource, args);
+    fragmentShader = new FragmentShader(fragmentShaderFiles->fileContent, args);
+
+    vertexShaderFile = vertexShaderFiles;
+    fragmentShaderFile = fragmentShaderFiles;
 }
 
 AudioShaderStage::AudioShaderStage(bool applyFFT)
@@ -19,13 +23,12 @@ AudioShaderStage::AudioShaderStage(bool applyFFT)
     this->applyFFT = applyFFT;
 }
 
-void AudioShaderStage::bindAudio(int offset, int size, char *errorContext)
+void AudioShaderStage::bindAudio(int offset, int size, char* errorContext)
 {
-    unsigned int *outputTexture = 0;
+    unsigned int* outputTexture = 0;
     outputTexture = offset == 1 ? &fragmentShader->outputTexture : &outputLTexture;
 
-    if (outputTexture == NULL || *outputTexture == 0)
-    {
+    if (outputTexture == NULL || *outputTexture == 0) {
         glGenTextures(1, outputTexture);
 
         if (fragmentShader->frameBufferObject == 0)
@@ -40,21 +43,18 @@ void AudioShaderStage::bindAudio(int offset, int size, char *errorContext)
 
         glBindFramebuffer(GL_FRAMEBUFFER, fragmentShader->frameBufferObject);
         glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_1D, *outputTexture, 0);
+            GL_TEXTURE_1D, *outputTexture, 0);
 
-        switch (glCheckFramebufferStatus(GL_FRAMEBUFFER))
-        {
+        switch (glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
         case GL_FRAMEBUFFER_COMPLETE:
             break;
         default:
             Errors::throwError("an error occured while binding audio framebuffer", errorContext, "In");
         }
-    }
-    else
-    {
+    } else {
         glBindFramebuffer(GL_FRAMEBUFFER, fragmentShader->frameBufferObject);
         glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_1D, *outputTexture, 0);
+            GL_TEXTURE_1D, *outputTexture, 0);
     }
 }
 
@@ -62,14 +62,13 @@ AudioShaderStages::AudioShaderStages(int numGravityFBOs, bool applyFFT)
 {
     this->numGravityFBOs = numGravityFBOs;
     this->applyFFT = applyFFT;
-    this->gravityFBOStages = new AudioShaderStage *[numGravityFBOs];
+    this->gravityFBOStages = new AudioShaderStage*[numGravityFBOs];
     smoothStage = new AudioShaderStage(applyFFT);
     averageStage = new AudioShaderStage(applyFFT);
     passStage = new AudioShaderStage(applyFFT);
     gravityStage = new AudioShaderStage(applyFFT);
 
-    for (int i = 0; i < numGravityFBOs; i++)
-    {
+    for (int i = 0; i < numGravityFBOs; i++) {
         gravityFBOStages[i] = new AudioShaderStage(applyFFT);
         gravityFBOStages[i]->fragmentShader = new FragmentShader();
     }
@@ -94,17 +93,16 @@ void AudioShaderStages::createAudioTextures()
     audioRTexture = create1DTexture();
 }
 
-void AudioShaderStages::reduceRangeForFullSpectrum(float *samples, float *out_data, unsigned int n_samples, float sample_rate)
+void AudioShaderStages::reduceRangeForFullSpectrum(float* samples, float* out_data, unsigned int n_samples, float sample_rate)
 {
-    for (int i = 0; i < n_samples / 2; i++)
-    {
+    for (int i = 0; i < n_samples / 2; i++) {
         out_data[2 * i] = samples[i];
         out_data[2 * i + 1] = samples[i];
     }
 }
 
-int *AudioShaderStages::applyRangeSelection(float *samples, float *out_data, unsigned int n_samples,
-                                            float min_freq, float max_freq, float sample_rate)
+int* AudioShaderStages::applyRangeSelection(float* samples, float* out_data, unsigned int n_samples,
+    float min_freq, float max_freq, float sample_rate)
 {
 
     float bin_width = 2 * sample_rate / (n_samples);
@@ -114,18 +112,14 @@ int *AudioShaderStages::applyRangeSelection(float *samples, float *out_data, uns
     min_bin = std::max(min_bin, 0);
     max_bin = std::min(max_bin, (int)n_samples / 4 - 1);
 
-    for (int i = 0; i <= n_samples / 4; i++)
-    {
-        if (i < min_bin || i > max_bin)
-        {
+    for (int i = 0; i <= n_samples / 4; i++) {
+        if (i < min_bin || i > max_bin) {
             out_data[2 * i] = 0;
             out_data[2 * i + 1] = 0;
 
             out_data[n_samples - 2 * i - 1] = 0;
             out_data[n_samples - 2 * i - 2] = 0;
-        }
-        else
-        {
+        } else {
             out_data[2 * i] = samples[2 * i];
             out_data[2 * i + 1] = samples[2 * i + 1];
 
@@ -134,7 +128,7 @@ int *AudioShaderStages::applyRangeSelection(float *samples, float *out_data, uns
         }
     }
 
-    int *binValues = new int[2];
+    int* binValues = new int[2];
     binValues[0] = min_bin;
     binValues[1] = max_bin;
 
@@ -145,21 +139,18 @@ int *AudioShaderStages::applyRangeSelection(float *samples, float *out_data, uns
 // Licensed under GPL-3.0
 
 void AudioShaderStages::applyGravityPassShader(unsigned int audioTextureSize, int offset,
-                                               std::string locationName, char *errorContext)
+    std::string locationName, char* errorContext)
 {
 
-    if (applyFFT)
-    {
+    if (applyFFT) {
         passStage->bindAudio(offset, audioTextureSize, errorContext);
 
         glUseProgram(passStage->glProgram);
 
         glActiveTexture(GL_TEXTURE0 + offset);
-        glBindTexture(GL_TEXTURE_1D, offset == 1
-                                         ? audioRTexture
-                                         : audioLTexture);
+        glBindTexture(GL_TEXTURE_1D, offset == 1 ? audioRTexture : audioLTexture);
         glUniform1i(passStage->uniformLocations[locationName],
-                    offset);
+            offset);
 
         glEnable(GL_BLEND);
         glBlendEquation(GL_MAX);
@@ -176,37 +167,35 @@ void AudioShaderStages::applyGravityPassShader(unsigned int audioTextureSize, in
 
         glActiveTexture(GL_TEXTURE0 + offset);
         glBindTexture(GL_TEXTURE_1D,
-                      offset == 1 ? passStage->fragmentShader
-                                        ->outputTexture
-                                  : passStage->outputLTexture);
+            offset == 1 ? passStage->fragmentShader
+                              ->outputTexture
+                        : passStage->outputLTexture);
         glUniform1i(gravityStage
                         ->uniformLocations[locationName],
-                    offset);
+            offset);
 
         glViewport(0, 0, audioTextureSize, 1);
         gravityStage->vertexShader->draw();
-    }
-    else
-    {
+    } else {
         passStage->fragmentShader->outputTexture = audioRTexture;
         passStage->outputLTexture = audioLTexture;
     }
 
     gravityFBOStages[offset == 1
-                         ? out_idx
-                         : out_idx_l]
+            ? out_idx
+            : out_idx_l]
         ->bindAudio(offset, audioTextureSize, errorContext);
 
     glUseProgram(passStage->glProgram);
 
     glActiveTexture(GL_TEXTURE0 + offset);
     glBindTexture(GL_TEXTURE_1D,
-                  offset == 1 ? passStage->fragmentShader
-                                    ->outputTexture
-                              : passStage
-                                    ->outputLTexture);
+        offset == 1 ? passStage->fragmentShader
+                          ->outputTexture
+                    : passStage
+                          ->outputLTexture);
     glUniform1i(passStage->uniformLocations[locationName],
-                offset);
+        offset);
 
     glViewport(0, 0, audioTextureSize, 1);
 
@@ -215,16 +204,15 @@ void AudioShaderStages::applyGravityPassShader(unsigned int audioTextureSize, in
 
     glUseProgram(averageStage->glProgram);
 
-    for (int t = 0; t < numGravityFBOs; ++t)
-    {
+    for (int t = 0; t < numGravityFBOs; ++t) {
         GLuint c_off = offset + 1 + t;
 
         std::string a = "audioR";
         a += std::to_string(t);
 
         int fr = (offset == 1 ? out_idx
-                              : out_idx_l) -
-                 t;
+                              : out_idx_l)
+            - t;
         if (fr < 0)
             fr = numGravityFBOs + fr;
 
@@ -233,7 +221,7 @@ void AudioShaderStages::applyGravityPassShader(unsigned int audioTextureSize, in
             GL_TEXTURE_1D,
             offset == 1 ? gravityFBOStages[fr]->fragmentShader->outputTexture
                         : gravityFBOStages[fr]->outputLTexture);
-        GLuint audioLoc = averageStage->uniformLocations[(char *)&a[0]];
+        GLuint audioLoc = averageStage->uniformLocations[(char*)&a[0]];
         glUniform1i(audioLoc, c_off);
     }
 
@@ -256,7 +244,7 @@ void AudioShaderStages::applyGravityPassShader(unsigned int audioTextureSize, in
 // Licensed under GPL-3.0
 
 void AudioShaderStages::applySmoothPassShader(unsigned int audioTextureSize, unsigned int adjacentSampleNums, int offset,
-                                              std::string locationName, char *errorContext)
+    std::string locationName, char* errorContext)
 {
 
     smoothStage->bindAudio(offset, audioTextureSize, errorContext);
@@ -270,14 +258,14 @@ void AudioShaderStages::applySmoothPassShader(unsigned int audioTextureSize, uns
 
     glActiveTexture(GL_TEXTURE0 + offset);
     glBindTexture(GL_TEXTURE_1D,
-                  offset == 1
-                      ? averageStage
-                            ->fragmentShader->outputTexture
-                      : averageStage
-                            ->outputLTexture);
+        offset == 1
+            ? averageStage
+                  ->fragmentShader->outputTexture
+            : averageStage
+                  ->outputLTexture);
     glUniform1i(smoothStage
                     ->uniformLocations[locationName],
-                offset);
+        offset);
 
     glDisable(GL_BLEND);
     glViewport(0, 0, audioTextureSize, 1);
@@ -290,7 +278,7 @@ void AudioShaderStages::applySmoothPassShader(unsigned int audioTextureSize, uns
     glBindTexture(GL_TEXTURE_1D, 0);
 }
 
-void AudioShaderStages::updateAudioTextures(int lOffset, size_t lSize, float *lData, int rOffset, size_t rSize, float *rData)
+void AudioShaderStages::updateAudioTextures(int lOffset, size_t lSize, float* lData, int rOffset, size_t rSize, float* rData)
 {
 
     glBindTexture(GL_TEXTURE_1D, audioLTexture);
