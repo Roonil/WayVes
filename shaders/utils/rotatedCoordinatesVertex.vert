@@ -16,6 +16,8 @@ uniform int audioRSize;
 #define TWOPI 6.28318530718
 #define PI 3.14159265359
 
+vec4 r_gl_FragCoord;
+
 #include ":$CONFIGFILE"
 
 mat2 ApplyResolutionRotation(float angle)
