@@ -1,20 +1,25 @@
-#include "ShaderFiles.h"
+#ifndef FILES_H
+#define FILES_H
 #include "CYAMLClasses.h"
+#include "ShaderFiles.h"
 #include <string>
 
-class Files
-{
+class Files {
 private:
-    std::string shaderName, configFileName, directoryPrefix;
-    std::map<std::string, int> postProcessingPasses = {};
+    ShaderProps* shaderProps;
+    std::string directoryPrefix;
+    std::map<std::string, int> postProcessingPasses = { };
+    std::map<std::string, std::string> overridesMap;
 
-    void setupShaderFiles(std::map<std::string, std::string> overridesMap, PostProcessingShader *postProcessingShaders, int postProcessingShadersCount);
-    void setupAudioShaderFiles(AudioOverride *audioOverrides);
+    void setupShaderFiles(std::map<std::string, std::string> overridesMap, PostProcessingShader* postProcessingShaders, int postProcessingShadersCount);
+    void setupAudioShaderFiles(AudioOverride* audioOverrides);
 
 public:
-    void LoadFiles(std::map<std::string, std::string> overridesMap, AudioOverride *audioOverrides, PostProcessingShader *postProcessingShaders, int postProcessingShadersCount);
-    Files(std::string shaderName, std::string configFileName, std::string directoryPrefix);
+    void LoadFiles();
+    Files(std::string directoryPrefix, ShaderProps* shaderProps, std::map<std::string, std::string> overridesMap);
 
     ShaderFiles vertexShaderFiles, fragmentShaderFiles, smoothShaderFile, postProcessingVertexShaderFiles, postProcessingFragmentShaderFiles,
         gravityShaderFile, averageShaderFile, passShaderFile, computeShaderFile;
 };
+
+#endif

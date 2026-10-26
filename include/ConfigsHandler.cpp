@@ -3,41 +3,37 @@
 #include "ConfigsHandler.h"
 #include "GApplicationHandler.h"
 
-bool ConfigsHandler::globalSmoothSettingsMatchShaderSmoothSettings(SmoothSettings *globalSmoothSettings, SmoothSettings *shaderSmoothSettings)
+bool ConfigsHandler::globalSmoothSettingsMatchShaderSmoothSettings(SmoothSettings* globalSmoothSettings, SmoothSettings* shaderSmoothSettings)
 {
     return shaderSmoothSettings->roundFormula == globalSmoothSettings->roundFormula && shaderSmoothSettings->adjacentSampleNums == globalSmoothSettings->adjacentSampleNums && shaderSmoothSettings->smoothFactor == globalSmoothSettings->smoothFactor && shaderSmoothSettings->sampleHybridWeight == globalSmoothSettings->sampleHybridWeight && shaderSmoothSettings->sampleScale == globalSmoothSettings->sampleScale && shaderSmoothSettings->sampleRange == globalSmoothSettings->sampleRange && shaderSmoothSettings->sampleMode == globalSmoothSettings->sampleMode;
 }
 
-bool ConfigsHandler::globalGravitySettingsMatchShaderGravitySettings(GravitySettings *globalGravitySettings, GravitySettings *shaderGravitySettings)
+bool ConfigsHandler::globalGravitySettingsMatchShaderGravitySettings(GravitySettings* globalGravitySettings, GravitySettings* shaderGravitySettings)
 {
 
-    return shaderGravitySettings->gravityStep == globalGravitySettings->gravityStep &&
-           shaderGravitySettings->averageFrames == globalGravitySettings->averageFrames;
+    return shaderGravitySettings->gravityStep == globalGravitySettings->gravityStep && shaderGravitySettings->averageFrames == globalGravitySettings->averageFrames;
 }
 
-bool ConfigsHandler::globalAudioOverridesMatchShaderAudioOverrides(AudioOverride *globalAudioOverride, AudioOverride *shaderAudioOverride)
+bool ConfigsHandler::globalAudioOverridesMatchShaderAudioOverrides(AudioOverride* globalAudioOverride, AudioOverride* shaderAudioOverride)
 {
-    return shaderAudioOverride->minFrequency == globalAudioOverride->minFrequency &&
-           shaderAudioOverride->maxFrequency == globalAudioOverride->maxFrequency && globalGravitySettingsMatchShaderGravitySettings(globalAudioOverride->gravitySettings, shaderAudioOverride->gravitySettings) && globalSmoothSettingsMatchShaderSmoothSettings(globalAudioOverride->smoothSettings, shaderAudioOverride->smoothSettings);
+    return shaderAudioOverride->minFrequency == globalAudioOverride->minFrequency && shaderAudioOverride->maxFrequency == globalAudioOverride->maxFrequency && globalGravitySettingsMatchShaderGravitySettings(globalAudioOverride->gravitySettings, shaderAudioOverride->gravitySettings) && globalSmoothSettingsMatchShaderSmoothSettings(globalAudioOverride->smoothSettings, shaderAudioOverride->smoothSettings);
 }
 
-void ConfigsHandler::addPaintableWindows(ShaderWindowHandler *windowHandler, ShaderProps *shader)
+void ConfigsHandler::addPaintableWindows(ShaderWindowHandler* windowHandler, ShaderProps* shader)
 {
-    for (int i = 0; i < shader->paintableShaderProps_count; i++)
-    {
+    for (int i = 0; i < shader->paintableShaderProps_count; i++) {
         if (windowHandler->paintableWindows == NULL)
-            windowHandler->paintableWindows = new PaintableWindowHandler *[shader->paintableShaderProps_count];
+            windowHandler->paintableWindows = new PaintableWindowHandler*[shader->paintableShaderProps_count];
 
         windowHandler->paintableWindows[i] = new PaintableWindowHandler(&shader->paintableShaderProps[i]);
         classNames.push_back(std::string(windowHandler->paintableWindows[i]->shaderProgram.paintableShaderConfig->className));
     }
 }
 
-std::map<std::string, std::string> ConfigsHandler::extractOverridesMap(char **shaderOverrides, int shaderOverrides_count, std::string errorContext)
+std::map<std::string, std::string> ConfigsHandler::extractOverridesMap(char** shaderOverrides, int shaderOverrides_count, std::string errorContext)
 {
-    std::map<std::string, std::string> overridesMap = {};
-    for (int i = 0; i < shaderOverrides_count; i++)
-    {
+    std::map<std::string, std::string> overridesMap = { };
+    for (int i = 0; i < shaderOverrides_count; i++) {
         std::string overrideString = std::string(shaderOverrides[i]);
 
         int equalsIdx = overrideString.find("=");
@@ -54,11 +50,11 @@ std::map<std::string, std::string> ConfigsHandler::extractOverridesMap(char **sh
     return overridesMap;
 }
 
-ShaderWindowHandler *ConfigsHandler::getShaderWindow(ShaderProps *currentShader, Audio *currentYAMLAudio, bool *isFirst, std::string directoryPrefix, AudioShaderStages *audioShaderStages)
+ShaderWindowHandler* ConfigsHandler::getShaderWindow(int shaderIndex, ShaderProps* currentShader, Audio* currentYAMLAudio, bool* isFirst, std::string directoryPrefix, AudioShaderStages* audioShaderStages)
 {
-    AudioOverride *globalYAMLAudioOverrides = currentYAMLAudio->audioOverrides;
+    AudioOverride* globalYAMLAudioOverrides = currentYAMLAudio->audioOverrides;
 
-    ShaderWindowHandler *windowHandler = NULL;
+    ShaderWindowHandler* windowHandler = NULL;
 
     classNames.push_back(currentShader->className);
 
@@ -66,23 +62,23 @@ ShaderWindowHandler *ConfigsHandler::getShaderWindow(ShaderProps *currentShader,
 
     std::map<std::string, std::string> overridesMap = extractOverridesMap(currentShader->shaderOverrides, currentShader->shaderOverrides_count, std::string(currentShader->shaderName));
 
-    if (!(globalAudioOverridesMatchShaderAudioOverrides(globalYAMLAudioOverrides, currentShader->audioOverrides)))
-    {
+    if (!(globalAudioOverridesMatchShaderAudioOverrides(globalYAMLAudioOverrides, currentShader->audioOverrides))) {
 
-        windowHandler = new ShaderWindowHandler(currentShader, currentYAMLAudio->pipewireSettings, new AudioShaderStages(currentShader->audioOverrides->gravitySettings->averageFrames, currentYAMLAudio->pipewireSettings->applyFFT), *isFirst, directoryPrefix, overridesMap);
+        windowHandler = new ShaderWindowHandler(currentShader, currentYAMLAudio->pipewireSettings, new AudioShaderStages(currentShader->audioOverrides->gravitySettings->averageFrames, currentYAMLAudio->pipewireSettings->applyFFT), false, directoryPrefix, overridesMap);
 
         windowHandler->shaderProgram.renderAudio = true;
-    }
-    else
-    {
+    } else {
         windowHandler = new ShaderWindowHandler(currentShader, currentYAMLAudio->pipewireSettings, audioShaderStages, *isFirst, directoryPrefix, overridesMap);
 
-        if (*isFirst)
-        {
+        if (*isFirst) {
             windowHandler->shaderProgram.renderAudio = true;
             *isFirst = false;
         }
     }
+
+    windowHandler->shaderProgram.audioConsumerBit = 1u << shaderIndex;
+    windowHandler->shaderProgram.audioShaderStages->setConsumer(windowHandler->shaderProgram.audioConsumerBit, windowHandler->shaderProgram.shaderProps->initialVisibility);
+    windowHandler->shaderProgram.shouldRender = windowHandler->shaderProgram.shaderProps->initialVisibility;
 
     windowHandler->paintableWindowsCount = currentShader->paintableShaderProps_count;
 
@@ -91,39 +87,37 @@ ShaderWindowHandler *ConfigsHandler::getShaderWindow(ShaderProps *currentShader,
     return windowHandler;
 }
 
-ConfigsHandler::ConfigsHandler(char *configFileName, std::string directoryPrefix)
+ConfigsHandler::ConfigsHandler(char* configFileName, std::string directoryPrefix)
 {
 
     this->configFileName = std::string(configFileName == NULL ? "config" : configFileName);
-    YAMLConfig *yamlConfig = new YAMLConfig;
+    YAMLConfig* yamlConfig = new YAMLConfig;
 
     yamlConfig->loadYaml(&yamlConfig, this->configFileName, directoryPrefix);
 
-    configsArray = new Configs *[yamlConfig->audios_count];
+    configsArray = new Configs*[yamlConfig->audios_count];
 
     Configs *configs = new Configs, *prevConfigs = NULL;
 
     configs->totalAudios = yamlConfig->audios_count;
 
-    for (int i = 0; i < yamlConfig->audios_count; i++)
-    {
+    for (int i = 0; i < yamlConfig->audios_count; i++) {
         configsArray[i] = configs;
 
-        Audio *currentYAMLAudio = &yamlConfig->audios[i];
+        Audio* currentYAMLAudio = &yamlConfig->audios[i];
         configs->audioName = std::string(yamlConfig->audios[i].audioName);
         configs->directoryPrefix = directoryPrefix;
 
         currentYAMLAudio->pipewireSettings->audioName = currentYAMLAudio->audioName;
 
-        AudioShaderStages *audioShaderStages = new AudioShaderStages(currentYAMLAudio->audioOverrides->gravitySettings->averageFrames, currentYAMLAudio->pipewireSettings->applyFFT);
+        AudioShaderStages* audioShaderStages = new AudioShaderStages(currentYAMLAudio->audioOverrides->gravitySettings->averageFrames, currentYAMLAudio->pipewireSettings->applyFFT);
 
         bool isFirst = true;
 
-        for (int j = 0; j < currentYAMLAudio->shaderProps_count; j++)
-        {
-            ShaderProps *currentShader = &currentYAMLAudio->shaderProps[j];
+        for (int j = 0; j < currentYAMLAudio->shaderProps_count; j++) {
+            ShaderProps* currentShader = &currentYAMLAudio->shaderProps[j];
 
-            configs->windowHandler = getShaderWindow(currentShader, currentYAMLAudio, &isFirst, directoryPrefix, audioShaderStages);
+            configs->windowHandler = getShaderWindow(j, currentShader, currentYAMLAudio, &isFirst, directoryPrefix, audioShaderStages);
             configs->windowHandler->audioIdx = i;
 
             if (prevConfigs == NULL)
@@ -143,11 +137,9 @@ void ConfigsHandler::initialiseGTKApps(std::string instance)
 {
     signal(SIGCHLD, SIG_IGN);
 
-    for (int i = 0; i < configsArray[0]->totalAudios; i++)
-    {
+    for (int i = 0; i < configsArray[0]->totalAudios; i++) {
         int pID = fork();
-        if (pID != 0)
-        {
+        if (pID != 0) {
             childrenPIDs.push_back(pID);
             continue;
         }
@@ -163,8 +155,7 @@ void ConfigsHandler::initialiseGTKApps(std::string instance)
 
 ConfigsHandler::~ConfigsHandler()
 {
-    for (int i = 0; i < childrenPIDs.size(); i++)
-    {
+    for (int i = 0; i < childrenPIDs.size(); i++) {
         kill(childrenPIDs.at(i), SIGTERM);
     }
 }

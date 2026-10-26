@@ -1,7 +1,6 @@
 #ifndef AUDIO_SHADER_STAGES_H
 #define AUDIO_SHADER_STAGES_H
 
-#include "ShaderFiles.h"
 #include <epoxy/gl.h>
 #include <iostream>
 #include <map>
@@ -10,16 +9,19 @@
 class AudioShaderStage : public ShaderStage {
 public:
     unsigned int outputLTexture = 0;
+    int allocatedRSize = 0, allocatedLSize = 0;
     bool applyFFT = true;
 
     AudioShaderStage(bool applyFFT);
 
     void compile(ShaderFiles* vertexShaderFiles, ShaderFiles* fragmentShaderFiles);
     void bindAudio(int offset, int size, char* errorContext);
+    void releaseOutputTextures();
 };
 
 class AudioShaderStages {
     GLuint create1DTexture();
+    uint32_t consumerMask = 0;
 
 public:
     int out_idx = 0, out_idx_l = 0;
@@ -35,6 +37,12 @@ public:
     unsigned int audioLTexture = 0, audioRTexture = 0;
 
     void createAudioTextures();
+
+    void setConsumer(uint32_t bit, bool active);
+
+    bool hasConsumers() const;
+
+    void setApplyFFT(bool applyFFT);
 
     AudioShaderStages(int numGravityFBOs, bool applyFFT);
 

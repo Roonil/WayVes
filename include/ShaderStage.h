@@ -1,10 +1,12 @@
 #ifndef SHADER_STAGE_H
 #define SHADER_STAGE_H
 
+#include "FilesWatcher.h"
 #include "ShaderFiles.h"
 #include "Shaders.h"
 
 class ShaderStage {
+private:
 public:
     unsigned int glProgram = 0;
     FragmentShader* fragmentShader = NULL;
@@ -14,7 +16,7 @@ public:
     ShaderFiles *fragmentShaderFile = NULL, *vertexShaderFile = NULL, *computeShaderFile = NULL;
 
     bool shouldSyncFiles();
-    bool syncFiles(VertexShaderCompilationArgs* vertexArgs, FragmentShaderCompilationArgs* fragmentArgs);
+    bool syncFiles(VertexShaderCompilationArgs* vertexArgs, FragmentShaderCompilationArgs* fragmentArgs, FilesWatcher* filesWatcherInstance);
 
     /// A Map to hold locations for uniforms in the current shader stage.
     std::map<std::string, int> uniformLocations = { { "audioR", -1 },

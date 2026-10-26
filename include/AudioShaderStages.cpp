@@ -4,13 +4,13 @@
 
 void AudioShaderStage::compile(ShaderFiles* vertexShaderFiles, ShaderFiles* fragmentShaderFiles)
 {
-    VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, &glProgram, &uniformLocations, NULL, NULL);
+    VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, &glProgram, &uniformLocations, NULL, NULL);
     vertexShader = new VertexShader(vertexShaderFiles == NULL ? "" : vertexShaderFiles->fileContent, vertexArgs);
 
     std::map<std::string, std::string> uniformValues = { };
     std::map<std::string, int> uniformTypes = { };
 
-    FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, &glProgram, &uniformLocations, &uniformValues, &uniformTypes);
+    FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, &glProgram, &uniformLocations, &uniformValues, &uniformTypes);
 
     fragmentShader = new FragmentShader(fragmentShaderFiles->fileContent, args);
 
@@ -25,10 +25,10 @@ AudioShaderStage::AudioShaderStage(bool applyFFT)
 
 void AudioShaderStage::bindAudio(int offset, int size, char* errorContext)
 {
-    unsigned int* outputTexture = 0;
-    outputTexture = offset == 1 ? &fragmentShader->outputTexture : &outputLTexture;
+    unsigned int* outputTexture = offset == 1 ? &fragmentShader->outputTexture : &outputLTexture;
+    int* allocatedSize = offset == 1 ? &allocatedRSize : &allocatedLSize;
 
-    if (outputTexture == NULL || *outputTexture == 0) {
+    if (*outputTexture == 0) {
         glGenTextures(1, outputTexture);
 
         if (fragmentShader->frameBufferObject == 0)
@@ -38,24 +38,92 @@ void AudioShaderStage::bindAudio(int offset, int size, char* errorContext)
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    }
 
+    bool reallocate = *allocatedSize != size;
+    if (reallocate) {
+        glBindTexture(GL_TEXTURE_1D, *outputTexture);
         glTexImage1D(GL_TEXTURE_1D, 0, applyFFT ? GL_R16 : GL_R16_SNORM, size, 0, GL_RED, GL_FLOAT, NULL);
+        *allocatedSize = size;
+    }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, fragmentShader->frameBufferObject);
-        glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_1D, *outputTexture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, fragmentShader->frameBufferObject);
+    glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_1D, *outputTexture, 0);
 
+    if (reallocate) {
         switch (glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
         case GL_FRAMEBUFFER_COMPLETE:
             break;
         default:
             Errors::throwError("an error occured while binding audio framebuffer", errorContext, "In");
         }
-    } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, fragmentShader->frameBufferObject);
-        glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_1D, *outputTexture, 0);
+
+        GLfloat clearColor[4];
+        glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     }
+}
+
+void AudioShaderStage::releaseOutputTextures()
+{
+    if (fragmentShader == NULL)
+        return;
+
+    glDeleteTextures(1, &fragmentShader->outputTexture);
+    glDeleteTextures(1, &outputLTexture);
+    fragmentShader->outputTexture = 0;
+    outputLTexture = 0;
+    allocatedRSize = 0;
+    allocatedLSize = 0;
+}
+
+void AudioShaderStages::setApplyFFT(bool applyFFT)
+{
+    if (this->applyFFT == applyFFT)
+        return;
+
+    if (this->applyFFT)
+        passStage->releaseOutputTextures();
+    else if (passStage->fragmentShader != NULL) {
+        passStage->fragmentShader->outputTexture = 0;
+        passStage->outputLTexture = 0;
+    }
+
+    smoothStage->releaseOutputTextures();
+    averageStage->releaseOutputTextures();
+    gravityStage->releaseOutputTextures();
+
+    for (int i = 0; i < numGravityFBOs; i++)
+        gravityFBOStages[i]->releaseOutputTextures();
+
+    this->applyFFT = applyFFT;
+    passStage->applyFFT = applyFFT;
+    smoothStage->applyFFT = applyFFT;
+    averageStage->applyFFT = applyFFT;
+    gravityStage->applyFFT = applyFFT;
+
+    for (int i = 0; i < numGravityFBOs; i++)
+        gravityFBOStages[i]->applyFFT = applyFFT;
+}
+
+void AudioShaderStages::setConsumer(uint32_t bit, bool active)
+{
+    std::cout << "Setting Consumer from: " << consumerMask << " ";
+
+    if (active)
+        consumerMask |= bit;
+    else
+        consumerMask &= ~bit;
+
+    std::cout << "to " << consumerMask << "\n";
+}
+
+bool AudioShaderStages::hasConsumers() const
+{
+    return consumerMask != 0;
 }
 
 AudioShaderStages::AudioShaderStages(int numGravityFBOs, bool applyFFT)

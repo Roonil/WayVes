@@ -5,6 +5,7 @@
 #include <spa/param/audio/format-utils.h>
 #include <pthread.h>
 #include <map>
+#include "Arguments.h"
 
 class PipeWireHandler
 {
@@ -36,6 +37,7 @@ private:
         .process = processAudioBuffer};
 
     static void *runAudio(PipeWireHandler *pipeWireSetting);
+    static int queueDataToPipeWire(struct spa_loop *loop, bool async, uint32_t seq, const void *_data, size_t size, void *user_data);
 
     void createLoop();
     void connectStream();
@@ -44,6 +46,7 @@ private:
 
 public:
     char *audioFormat, *audioName, *targetObject = NULL;
+    bool ownsAudioFormat = false, ownsTargetObject = false;
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     int channels, sampleSize, fragmentSize;
     float fftScale, fftCutOff;
@@ -54,6 +57,8 @@ public:
     ~PipeWireHandler();
 
     void createPipeWireThread();
+
+    void updateData(AudioArguments *newData);
 };
 
 #endif

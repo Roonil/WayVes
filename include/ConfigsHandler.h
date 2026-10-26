@@ -1,32 +1,31 @@
 #ifndef CONFIGS_HANDLER_H
 #define CONFIGS_HANDLER_H
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
 #include "Configs.h"
 
-class ConfigsHandler
-{
+class ConfigsHandler {
 private:
     std::string configFileName;
     std::vector<int> childrenPIDs;
 
-    bool globalAudioOverridesMatchShaderAudioOverrides(AudioOverride *globalAudioOverride, AudioOverride *shaderAudioOverride);
-    bool globalGravitySettingsMatchShaderGravitySettings(GravitySettings *globalGravitySettings, GravitySettings *shaderGravitySettings);
-    bool globalSmoothSettingsMatchShaderSmoothSettings(SmoothSettings *globalSmoothSettings, SmoothSettings *shaderSmoothSettings);
+    bool globalAudioOverridesMatchShaderAudioOverrides(AudioOverride* globalAudioOverride, AudioOverride* shaderAudioOverride);
+    bool globalGravitySettingsMatchShaderGravitySettings(GravitySettings* globalGravitySettings, GravitySettings* shaderGravitySettings);
+    bool globalSmoothSettingsMatchShaderSmoothSettings(SmoothSettings* globalSmoothSettings, SmoothSettings* shaderSmoothSettings);
 
-    std::map<std::string, std::string> extractOverridesMap(char **shaderOverrides, int shaderOverrides_count, std::string errorContext);
+    std::map<std::string, std::string> extractOverridesMap(char** shaderOverrides, int shaderOverrides_count, std::string errorContext);
 
-    void addPaintableWindows(ShaderWindowHandler *windowHandler, ShaderProps *shader);
-    ShaderWindowHandler *getShaderWindow(ShaderProps *currentShader, Audio *currentYAMLAudio, bool *isFirst, std::string directoryPrefix, AudioShaderStages *audioShaderStages);
+    void addPaintableWindows(ShaderWindowHandler* windowHandler, ShaderProps* shader);
+    ShaderWindowHandler* getShaderWindow(int shaderIndex, ShaderProps* currentShader, Audio* currentYAMLAudio, bool* isFirst, std::string directoryPrefix, AudioShaderStages* audioShaderStages);
 
 public:
-    Configs **configsArray = NULL;
+    Configs** configsArray = NULL;
     std::vector<std::string> classNames;
 
-    ConfigsHandler(char *configFileName, std::string directoryPrefix);
+    ConfigsHandler(char* configFileName, std::string directoryPrefix);
     void initialiseGTKApps(std::string instance);
     ~ConfigsHandler();
 };

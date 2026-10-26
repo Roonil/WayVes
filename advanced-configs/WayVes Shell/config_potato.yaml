@@ -1,0 +1,249 @@
+# yaml-language-server: $schema=./schemas/WayVes_config_schema.json
+
+audios:
+  - name: WayVes_center_bar
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: linear
+        fps: 60
+        config-file: wayves-shell/center-bar/wayves_logo.glsl
+        hot-reload: false
+        class-name: logo
+        rendering-mode: Detached
+        initial-visibility: false
+        rendering-sockets:
+          - logo
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 0.5
+            average-frames: 15
+          smooth-settings:
+            smooth-factor: 0.1
+
+        anchor-left: true
+        anchor-top: true
+        # anchor-right: true
+        margin-left: 1000
+        margin-top: 100
+        layer: Overlay
+        window-width: 300
+        window-height: 80
+
+  - name: WayVes_side_bar
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+    audio-overrides:
+      gravity-settings:
+        gravity-step: 2.2
+        average-frames: 12
+
+    shaders:
+      - name: angular
+        fps: 2
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: cpu_usage
+        rendering-mode: Detached
+        hot-reload: false
+        initial-visibility: false
+        overrides:
+          - isPotato=1.0
+
+        rendering-sockets:
+          - cpu_usage
+
+        window-height: 260
+        window-width: 260
+        layer: Overlay
+
+      - name: angular
+        fps: 2
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: gpu_usage
+        rendering-mode: Detached
+        hot-reload: false
+        initial-visibility: false
+        overrides:
+          - isPotato=1.0
+
+        rendering-sockets:
+          - gpu_usage
+
+        window-height: 150
+        window-width: 150
+        layer: Overlay
+
+      - name: angular
+        fps: 2
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        overrides:
+          - isPotato=1.0
+
+        class-name: memory_usage
+        hot-reload: false
+        initial-visibility: false
+        rendering-mode: Detached
+
+        rendering-sockets:
+          - memory_usage
+
+        window-height: 150
+        window-width: 150
+        layer: Overlay
+
+      - name: angular
+        fps: 2
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: gpu_temp
+        initial-visibility: false
+        rendering-mode: Detached
+        hot-reload: false
+        rendering-sockets:
+          - gpu_temp
+
+        overrides:
+          - isPotato=1.0
+
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+
+      - name: angular
+        fps: 2
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        hot-reload: false
+        class-name: cpu_temp
+        initial-visibility: false
+        rendering-sockets:
+          - cpu_temp
+        rendering-mode: Detached
+
+        overrides:
+          - isPotato=1.0
+
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 1.5
+            average-frames: 16
+        window-height: 146
+        window-width: 146
+        layer: Overlay
+
+  - name: WayVes_dock
+    pipewire-settings:
+      sample-rate: 2000
+      channels: 1
+      sample-size: 256
+      fragment-size: 512
+      capture-mic: false
+      audio-format: F32_LE
+
+      fft-scale: 6
+      fft-cutOff: 4
+
+    audio-overrides:
+      min-frequency: 5
+      max-frequency: 550
+
+      smooth-settings:
+        adjacent-sample-nums: 1
+        smooth-factor: .12
+        sample-range: .2
+        sample-scale: 2.6
+
+    shaders:
+      - name: angular
+        config-file: wayves-shell/dock/dock.glsl
+        fps: 1
+        hot-reload: false
+        class-name: dock
+        rendering-mode: Detached
+        rendering-sockets:
+          - dock
+        window-height: 400
+        window-width: 800
+        layer: Overlay
+        # post-processing:
+        #   - name: glow
+        #     passes: 2
+
+        audio-overrides:
+          # min-frequency: 0
+          # max-frequency: 1000
+
+          smooth-settings:
+            adjacent-sample-nums: 10
+            smooth-factor: 0.15
+            sample-range: 0.9
+            sample-scale: 8
+
+          gravity-settings:
+            gravity-step: 4.5
+            average-frames: 4
+
+      - name: angular
+        config-file: wayves-shell/dock/indicator.glsl
+        class-name: selector
+        hot-reload: false
+        rendering-mode: Detached
+        fps: 25
+        rendering-sockets:
+          - selector
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+
+      - name: angular
+        config-file: wayves-shell/dock/indicator.glsl
+        class-name: selector_active
+        hot-reload: false
+        rendering-mode: Detached
+        fps: 20
+        overrides:
+          - connectorColor=vec4(1,0,0,1)
+          - circleColor=vec4(1,0,0,1)
+        rendering-sockets:
+          - selector_active
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+
+  - name: WayVes_power_menu
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: angular
+        class-name: hud_surface
+        config-file: wayves-shell/power-menu/surface.glsl
+        initial-visibility: false
+        hot-reload: false
+        rendering-mode: 1
+        overrides:
+          - isPotato=1.0
+        rendering-sockets:
+          - hud_surface
+        fps: 1
+        margin-top: 160
+        margin-right: -320
+        anchor-right: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 1100
+        window-height: 1100

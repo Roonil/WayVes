@@ -1,0 +1,590 @@
+# yaml-language-server: $schema=./schemas/WayVes_config_schema.json
+audios:
+  - name: WayVes_center_bar
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: ncs
+        rendering-mode: 1
+        config-file: wayves-shell/center-bar/ncs.glsl
+        atomic-textures: 1
+        anchor-left: true
+        anchor-top: true
+        initial-visibility: false
+        hot-reload: false
+        layer: Overlay
+        window-width: 380
+        window-height: 380
+        rendering-sockets:
+          - ncs
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: linear
+        config-file: wayves-shell/center-bar/wayves_logo.glsl
+        hot-reload: false
+        class-name: logo
+        rendering-mode: Detached
+        initial-visibility: false
+        rendering-sockets:
+          - logo
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 0.5
+            average-frames: 15
+          smooth-settings:
+            smooth-factor: 0.1
+
+        anchor-left: true
+        anchor-top: true
+        # anchor-right: true
+        margin-left: 1000
+        margin-top: 100
+        layer: Overlay
+        window-width: 300
+        window-height: 80
+        post-processing:
+          - name: glow
+            passes: 2
+
+  - name: WayVes_side_bar
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+    audio-overrides:
+      gravity-settings:
+        gravity-step: 2.2
+        average-frames: 12
+
+    shaders:
+      - name: angular
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: cpu_usage
+        rendering-mode: Detached
+        hot-reload: false
+        initial-visibility: false
+
+        rendering-sockets:
+          - cpu_usage
+
+        window-height: 260
+        window-width: 260
+        layer: Overlay
+
+      - name: angular
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: gpu_usage
+        rendering-mode: Detached
+        hot-reload: false
+        initial-visibility: false
+        rendering-sockets:
+          - gpu_usage
+
+        window-height: 150
+        window-width: 150
+        layer: Overlay
+
+      - name: angular
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: memory_usage
+        hot-reload: false
+        initial-visibility: false
+        rendering-mode: Detached
+
+        rendering-sockets:
+          - memory_usage
+
+        window-height: 150
+        window-width: 150
+        layer: Overlay
+
+      - name: angular
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        class-name: gpu_temp
+        initial-visibility: false
+        rendering-mode: Detached
+        hot-reload: true
+        rendering-sockets:
+          - gpu_temp
+
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+        overrides:
+          - isSecondary=1.0
+
+      - name: angular
+        config-file: wayves-shell/side-bar/progress_indicator.glsl
+        hot-reload: false
+        class-name: cpu_temp
+        initial-visibility: false
+        rendering-sockets:
+          - cpu_temp
+        rendering-mode: Detached
+
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 1.5
+            average-frames: 16
+        window-height: 146
+        window-width: 146
+        layer: Overlay
+
+  - name: WayVes_dock
+    pipewire-settings:
+      sample-rate: 2000
+      channels: 1
+      sample-size: 256
+      fragment-size: 512
+      capture-mic: false
+      audio-format: F32_LE
+
+      fft-scale: 6
+      fft-cutOff: 4
+
+    audio-overrides:
+      min-frequency: 5
+      max-frequency: 550
+
+      smooth-settings:
+        adjacent-sample-nums: 1
+        smooth-factor: .12
+        sample-range: .2
+        sample-scale: 2.6
+
+    shaders:
+      - name: angular
+        config-file: wayves-shell/dock/dock.glsl
+        fps: 25
+        hot-reload: false
+        class-name: dock
+        rendering-mode: Detached
+        rendering-sockets:
+          - dock
+        window-height: 400
+        window-width: 800
+        layer: Overlay
+        # post-processing:
+        #   - name: glow
+        #     passes: 2
+
+        audio-overrides:
+          # min-frequency: 0
+          # max-frequency: 1000
+
+          smooth-settings:
+            adjacent-sample-nums: 10
+            smooth-factor: 0.15
+            sample-range: 0.9
+            sample-scale: 8
+
+          gravity-settings:
+            gravity-step: 4.5
+            average-frames: 4
+
+      - name: angular
+        config-file: wayves-shell/dock/indicator.glsl
+        class-name: selector
+        hot-reload: false
+        rendering-mode: Detached
+        fps: 25
+        rendering-sockets:
+          - selector
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+
+      - name: angular
+        config-file: wayves-shell/dock/indicator.glsl
+        class-name: selector_active
+        hot-reload: false
+        rendering-mode: Detached
+        fps: 20
+        overrides:
+          - connectorColor=vec4(1,0,0,1)
+          - circleColor=vec4(1,0,0,1)
+        rendering-sockets:
+          - selector_active
+        window-height: 120
+        window-width: 120
+        layer: Overlay
+
+  # Waves & Pill
+  - name: WayVes_waves
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    audio-overrides:
+      min-frequency: 50
+      max-frequency: 2000
+      gravity-settings:
+        average-frames: 9
+        gravity-step: 1.2
+      smooth-settings:
+        # adjacent-sample-nums: 5
+        smooth-factor: .13
+        # sample-range: .2
+        # sample-scale: 2.6
+
+    shaders:
+      - name: linear
+        config-file: wayves-shell/center-bar/waves.glsl
+        class-name: waves_caps
+        image-textures: 1
+        hot-reload: false
+        overrides:
+          - enableDecay=true
+          - alphaMultiplier=.8
+        rendering-mode: 1
+        rendering-sockets:
+          - waves_caps
+        margin-top: 7
+        margin-left: 880
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 200
+        window-height: 30
+
+      - name: linear
+        config-file: wayves-shell/center-bar/waves.glsl
+        class-name: waves
+        hot-reload: false
+        initial-visibility: false
+        audio-overrides:
+          min-frequency: 80
+          max-frequency: 3000
+          smooth-settings:
+            smooth-factor: 0.1
+          gravity-settings:
+            average-frames: 5
+            gravity-step: 4.2
+        overrides:
+          - amplify=130
+
+        rendering-mode: 1
+        rendering-sockets:
+          - waves
+        margin-top: 7
+        margin-left: 880
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 200
+        window-height: 30
+
+      - name: linear
+        rendering-mode: 1
+        config-file: wayves-shell/center-bar/card.glsl
+        hot-reload: false
+        initial-visibility: false
+        overrides:
+          # - visualiserMode=1
+          - enableDecay=true
+          # - visualiserDirections=1
+          - amplify=60
+          - audioExponentiate=false
+          - glowColor0=vec4(0.1255, 0.2353, 0.4863, 1.0)
+
+          - glowSize0=3.5
+          - glowIntensity0=.5
+        class-name: linear_pill
+        image-textures: 0
+        # rendering-mode: 1
+        rendering-sockets:
+          - pill
+        margin-top: 7
+        margin-left: 930
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 350
+        window-height: 150
+        post-processing:
+          - name: glow
+            passes: 1
+        audio-overrides:
+          max-frequency: 3000
+          gravity-settings:
+            average-frames: 4
+
+  - name: WayVes_audio_overview
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+    audio-overrides:
+      gravity-settings:
+        gravity-step: 2.2
+        average-frames: 10
+
+    shaders:
+      - name: linear
+        rendering-mode: Detached
+        initial-visibility: false
+        hot-reload: false
+        image-textures: 1
+        rendering-sockets:
+          - audioTracker
+        class-name: audio_tracker
+        config-file: wayves-shell/right-bar/audio_tracker.glsl
+        margin-top: 12
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 700
+        window-height: 700
+
+  - name: WayVes_wallpaper_picker
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: ncs
+        class-name: ncs_wallpaper
+        atomic-textures: 5
+        rendering-mode: Detached
+        initial-visibility: false
+        hot-reload: false
+
+        rendering-sockets:
+          - ncs_wallpaper
+        # anchor-right: true
+        fps: 40
+        margin-right: 80
+        config-file: wayves-shell/wallpaper/background.glsl
+        window-height: 1700
+        window-width: 2500
+        layer: Overlay
+        audio-overrides:
+          gravity-settings:
+            gravity-step: 2.2
+            average-frames: 9
+        # post-processing:
+        #   - name: glow
+        #     passes: 1
+      - name: ncs
+        class-name: ncs_card
+        config-file: wayves-shell/wallpaper/particles.glsl
+        initial-visibility: false
+        hot-reload: false
+        rendering-mode: Detached
+        atomic-textures: 1
+        rendering-sockets:
+          - ncs_card
+        margin-top: 12
+        anchor-left: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 700
+        window-height: 700
+        post-processing:
+          - name: glow
+            passes: 1
+
+      - name: angular
+        class-name: angular_theme_button
+        config-file: wayves-shell/wallpaper/theme_button.glsl
+        margin-top: 10
+        initial-visibility: false
+        hot-reload: false
+        rendering-mode: Detached
+        rendering-sockets:
+          - theme_button
+        # anchor-top: true
+        anchor-left: true
+        margin-bottom: 220
+        anchor-bottom: true
+        margin-left: 40
+        layer: Overlay
+        window-width: 300
+        window-height: 300
+        post-processing:
+          - name: glow
+            passes: 1
+
+  - name: WayVes_lockscreen
+    pipewire-settings:
+      sample-rate: 48000
+      channels: 2
+      sample-size: 8192
+      fragment-size: 8192
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      # - name: ncs
+      #   config-file: ncs_water.glsl
+      #   class-name: ncs_lockscreen
+      #   rendering-mode: 1
+      #   atomic-textures: 1
+      #   anchor-right: true
+      #   anchor-top: true
+      #   layer: Overlay
+      #   window-width: 900
+      #   window-height: 900
+      #   margin-top: 40
+      #   audio-overrides:
+      #     gravity-settings:
+      #       gravity-step: 24.2
+      #       average-frames: 5
+      #   rendering-sockets:
+      #     - ncs_liquid
+      #   #   - dmabuf
+      #   post-processing:
+      #     - name: glow
+      #       passes: 1
+
+      # - name: ncs
+      #   config-file: ncs_grid.glsl
+      #   class-name: ncs_lockscreen
+      #   rendering-mode: 1
+      #   atomic-textures: 5
+      #   anchor-right: true
+      #   anchor-top: true
+      #   layer: Overlay
+      #   window-width: 2600
+      #   window-height: 300
+      #   margin-top: 40
+      #   fps: 30
+      #   audio-overrides:
+      #     gravity-settings:
+      #       gravity-step: 24.2
+      #       average-frames: 5
+      #   rendering-sockets:
+      #     - ncs_grid
+      #   #   - dmabuf
+      #   post-processing:
+      #     - name: glow
+      #       passes: 1
+      - name: linear
+        class-name: linear_password_mask
+        config-file: wayves-shell/lockscreen/password_mask.glsl
+        image-textures: 1
+        hot-reload: false
+        initial-visibility: false
+        rendering-mode: 1
+        rendering-sockets:
+          - password_mask
+        audio-overrides:
+          max-frequency: 6000
+          min-frequency: 40
+          # smooth-audio: false
+          strict-frequency-bounds: true
+          smooth-settings:
+            sample-scale: 4
+            sample-range: 0.5
+            # smooth-factor: 0.01
+          gravity-settings:
+            gravity-step: 17.2
+            average-frames: 3
+        # margin-bottom: 180
+        margin-left: 700
+        margin-top: -40
+        anchor-left: true
+        anchor-top: true
+        layer: Top
+        window-width: 380
+        window-height: 50
+
+      - name: ncs
+        class-name: ncs_xmb
+        config-file: wayves-shell/lockscreen/xmb.glsl
+        atomic-textures: 5
+        initial-visibility: false
+        hot-reload: false
+        fps: 60
+        rendering-mode: Detached
+        rendering-sockets:
+          - ncs_xmb
+
+        margin-top: 12
+        anchor-left: true
+        layer: Overlay
+        window-width: 2560
+        window-height: 700
+
+  - name: WayVes_power_menu
+    pipewire-settings:
+      sample-rate: 11000
+      channels: 2
+      sample-size: 1024
+      fragment-size: 4096
+      capture-mic: false
+      audio-format: F32_LE
+
+    shaders:
+      - name: angular
+        class-name: hud_waves
+        config-file: wayves-shell/power-menu/waves.glsl
+        rendering-mode: 1
+        initial-visibility: false
+        hot-reload: false
+        rendering-sockets:
+          - hud_waves
+        margin-top: 200
+        margin-right: 250
+        anchor-right: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 500
+        window-height: 500
+
+      - name: angular
+        class-name: hud_outer_ring
+        config-file: wayves-shell/power-menu/outer_ring.glsl
+        initial-visibility: false
+        hot-reload: false
+        rendering-mode: 1
+
+        rendering-sockets:
+          - hud_outer_ring
+        margin-top: 160
+        fps: 30
+        margin-right: -320
+        anchor-right: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 1100
+        window-height: 1100
+
+      - name: angular
+        class-name: hud_surface
+        config-file: wayves-shell/power-menu/surface.glsl
+        initial-visibility: false
+        hot-reload: false
+        rendering-mode: 1
+        rendering-sockets:
+          - hud_surface
+        fps: 30
+        margin-top: 160
+        margin-right: -320
+        anchor-right: true
+        anchor-top: true
+        layer: Overlay
+        window-width: 1100
+        window-height: 1100

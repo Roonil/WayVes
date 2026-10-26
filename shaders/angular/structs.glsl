@@ -1,5 +1,52 @@
-struct Fragment {
-    // Represents the underlying `Fragment` that can show one `Particle` and one `Bar`. None of the Attributes are meant to be modified.
+// Audio Settings
+struct AudioSettings
+{
+    // Represents the various Audio-transformation properties for each side.
+
+    // Specifies the reversal of the left audio channel. Either 0 or 1.
+    int reverseLeft;
+    // Example: 0
+
+    // Specifies the reversal of the right audio channel. Either 0 or 1.
+    int reverseRight;
+    // Example: 0
+
+    // 0 for mirrored audio output, where the left half corresponds to the left audio channel and the right half
+    // corresponds to the right audio channel. 1 for linear audio output, where the top half represents the right audio
+    // channel and the bottom half represents the left audio channel.
+    int mode;
+    // Example: 1
+
+    // Specifies whether the audio values should be combined from the left and right channels. Either 0 or 1.
+    int combineChannels;
+    // Example: 1
+} audioSettings;
+
+struct Audio
+{
+    // Represents the captured Audio Data, and its multiplier.
+
+    // Amplification for the audio value
+    float multiplier;
+    // Example: 100
+
+    // Stores the `Current Fragment's` left audio channel data in x, and the right audio channel data in y.
+    vec2 current;
+    // Example: -
+
+    // Stores the `Previous Fragment's` left audio channel data in x, and the right audio channel data in y.
+    vec2 prev;
+    // Example: -
+
+    // Stores the `Next Fragment's` left audio channel data in x, and the right audio channel data in y.
+    vec2 next;
+    // Example: -
+};
+
+struct Fragment
+{
+    // Represents the underlying `Fragment` that can show one `Particle` and one `Bar`. None of the Attributes are meant
+    // to be modified.
 
     // Number of the current `Fragment`. Ranges from 0 to `lastN`.
     float n;
@@ -34,48 +81,70 @@ struct Fragment {
     // Example: -
 };
 
-struct AudioSettings {
-    // Represents the various Audio-transformation properties for each side.
+struct Circle
+{
+    // Represents the `Circle` at the Center.
 
-    // Specifies the reversal of the left audio channel. Either 0 or 1.
-    int reverseLeft;
+    // The Maximum Angle at which the `Circle` should be drawn.
+    float maxAngle;
+    // Example: 360
+
+    // The start padding for the angle, that will begin drawing the primitives starting from this angle. This will only
+    // be relevant if you want to show rounded Connector ends with larger Connector Height and smaller `fragmentAngle`.
+    // You can use `angleOffset` otherwise.
+    float startAnglePadding;
     // Example: 0
 
-    // Specifies the reversal of the right audio channel. Either 0 or 1.
-    int reverseRight;
+    // The end padding for the angle, that will be the final angle for the primitives to draw to. This will only be
+    // relevant if you want to show rounded Connector ends with larger Connector Height and smaller `fragmentAngle`. You
+    // can use `maxAngle` otherwise.
+    float endAnglePadding;
     // Example: 0
 
-    // 0 for mirrored audio output, where the left half corresponds to the left audio channel and the right half corresponds to the right audio channel. 1 for linear audio output, where the top half represents the right audio channel and the bottom half represents the left audio channel.
-    int mode;
+    // Specifies whether to also restrict the `Circle` when `maxAngle` is smaller than 360. Set to 0 to disable the
+    // restriction, or 1 to enable it.
+    float restrictCircleAngle;
     // Example: 1
 
-    // Specifies whether the audio values should be combined from the left and right channels. Either 0 or 1.
-    int combineChannels;
-    // Example: 1
-} audioSettings;
+    // Specifies the offset Angle at which to place the `Circle`.
+    float angleOffset;
+    // Example: 30
 
-struct Audio {
-    // Represents the captured Audio Data, and its multiplier.
-
-    // Amplification for the audio value
-    float multiplier;
+    // Specifies the radius of the `Circle`.
+    int radius;
     // Example: 100
 
-    // Stores the `Current Fragment's` left audio channel data in x, and the right audio channel data in y.
-    vec2 current;
-    // Example: -
+    // Specifies the size of the Border of the `Circle`.
+    int borderSize;
+    // Example: 4
 
-    // Stores the `Previous Fragment's` left audio channel data in x, and the right audio channel data in y.
-    vec2 prev;
-    // Example: -
+    // Inner Softness of the `Circle`. Higher softness value yields a smoother and blurred edge.
+    float innerSoftness;
+    // Example: 1.5
 
-    // Stores the `Next Fragment's` left audio channel data in x, and the right audio channel data in y.
-    vec2 next;
-    // Example: -
-};
+    // Outer Softness of the `Circle`. Higher softness value yields a smoother and blurred edge.
+    float outerSoftness;
+    // Example: 1.5
 
-struct Cap {
-    // Represents a `Cap` that can 'bounce' over a `Primitive` (`Bar` or `Particle`). Requires 1 `Image Texture` to be enabled when `visualiserMode` is either 0 or 1, and requires 2 when`visualiserMode` is 2.
+    // Absolute Coordinates of the Center of the `Circle`. Defaults to the center of the Window, that is,
+    // `vec2(resolution.xy/2.)`
+    vec2 center;
+    // Example: vec2(resolution.xy)
+
+    // Inner Color of the `Circle`.
+    vec4 color;
+    // Example: vec4(0.0, 1.0, 1.0, 1.0)
+
+    // Outer Color of the `Circle`.
+    vec4 borderColor;
+    // Example: vec4(1.0, 0.0, 0.5, 1.0)
+
+} circle;
+
+struct Cap
+{
+    // Represents a `Cap` that can 'bounce' over a `Primitive` (`Bar` or `Particle`). Requires 1 `Image Texture` to be
+    // enabled when `visualiserMode` is either 0 or 1, and requires 2 when`visualiserMode` is 2.
 
     // Specifies whether the `Caps` should be enabled.
     bool enable;
@@ -109,7 +178,8 @@ struct Cap {
     float acceleration;
     // Example: 0.5
 
-    // Upwards Thrust of the `Cap` influenced by the current Audio value in the `Fragment`, when the `Parent Primitive` moves upwards.
+    // Upwards Thrust of the `Cap` influenced by the current Audio value in the `Fragment`, when the `Parent Primitive`
+    // moves upwards.
     float launchFlingMultiplier;
     // Example: 0.5
 
@@ -121,11 +191,13 @@ struct Cap {
     vec2 offset;
     // Example: vec2(0,12)
 
-    // The audio value that will be used for the `Cap`. `x` stores the left channel for the current `Fragment` and `y` stores the right channel. Each channel is used according to the channel of the `Primitive`.
+    // The audio value that will be used for the `Cap`. `x` stores the left channel for the current `Fragment` and `y`
+    // stores the right channel. Each channel is used according to the channel of the `Primitive`.
     vec2 audio;
     // Example: -
 
-    // Softness of the `Cap`. `x, y and z` respectively represent softness values for the `top`, `left & right`, and `bottom` edges. Higher softness value yields a smoother and blurred edge.
+    // Softness of the `Cap`. `x, y and z` respectively represent softness values for the `top`, `left & right`, and
+    // `bottom` edges. Higher softness value yields a smoother and blurred edge.
     vec3 softness;
     // Example: vec3(1, 1.5, 1)
 
@@ -134,163 +206,45 @@ struct Cap {
     // Example: vec4(1, 0, 0, 0)
 };
 
-struct Bar {
-    // Represents a `Bar`.
-
-    // Stores the current `Fragment`.
-    Fragment fragment;
-    // Example: -
-
-    // Stores captured Audio Data.
-    Audio audio;
-    // Example: -
-
-    // Stores the `Top Cap` for the `Bar`.
-    Cap upCap;
-    // Example: -
-
-    // Stores the `Bottom Cap for the Bar`.
-    Cap downCap;
-    // Example: -
-
-    // Specifies the type of `Bars` to draw: 0 for `Angular`, 1 for `Rectangular` and 2 for `Rounded`. Only `Angular` and `Rectangular Bars` can be merged.
-    int type;
-    // Example: 1
-
-    // Specifies merging of the `Bar` on the Left. Either 0 or 1.
-    int mergeLeftBar;
-    // Example: 1
-
-    // Specifies merging of the `Bar` on the Right. Either 0 or 1.
-    int mergeRightBar;
-    // Example: 1
-
-    // 1 to specify whether the first and last `Bars` should be merged, when `mergeLeftBar` is 1 or mergeRightBar is 1 for the last Bar. `clampLeftMergeBorder` and `clampRightMergeBorder` should both be 0 for this setting to take effect.
-    int mergeEnds;
-    // Example: 1
-
-    // 1 to specify left Border to be always present on the very first `Bar`, when `mergeLeftBar` is 1.
-    int clampLeftMergeBorder;
-    // Example: 1
-
-    // 1 to specify right Border to be always present on the very last `Bar`, when `mergeRightBar` is 1.
-    int clampRightMergeBorder;
-    // Example: 1
-
-    // Specifies the offset of the `Bar`. Added to `Bar's` coordinates.
-    vec2 offset;
-    // Example: vec2(0,-12)
-
-    // Specifies the Size of the `Bar`. `x, y and z` represent the minimum upwards height, horizontal size, and the minimum downwards height.
-    vec3 size;
-    // Example: vec3(3, 12, 3)
-
-    // Specifies the BorderSize of the `Bar`. `x, y and z` represent the top, left & right, down side Borders.
-    vec3 borderSize;
-    // Example: vec3(1, 2, 1)
-
-    // Softness of the Inner Edge of the `Bar`. `x, y and z` respectively represent softness values for the `top`, `left & right`, and `bottom` edges. Higher softness value yields a smoother and blurred edge.
-    vec3 innerSoftness;
-    // Example: vec3(0.5)
-
-    // Softness of the Outer Edge of the `Bar`. `x, y and z` respectively represent softness values for the `top`, `left & right`, and `bottom` edges. Higher softness value yields a smoother and blurred edge.
-    vec3 outerSoftness;
-    // Example: vec3(0.5)
-
-    // Specifies the Inner Color of the `Bar`.
-    vec4 color;
-    // Example: vec4(0,1,1,1)
-
-    // Specifies the Outer Color of the `Bar`.
-    vec4 borderColor;
-    // Example: vec4(0.0, 1.0, 0.5, 1.0)
-
-    // Specifies the background Color over which `Bars` are displayed.
-    vec4 bgColor;
-    // Example: vec4(0.5)
-} bar;
-
-struct Circle {
-    // Represents the `Circle` at the Center.
-
-    // The Maximum Angle at which the `Circle` should be drawn.
-    float maxAngle;
-    // Example: 360
-
-    // Specifies whether to also restrict the `Circle` when `maxAngle` is smaller than 360. Set to 0 to disable the restriction, or 1 to enable it.
-    float restrictCircleAngle;
-    // Example: 1
-
-    // Specifies the offset Angle at which to place the `Circle`.
-    float angleOffset;
-    // Example: 30
-
-    // Specifies the radius of the `Circle`.
-    int radius;
-    // Example: 100
-
-    // Specifies the size of the Border of the `Circle`.
-    int borderSize;
-    // Example: 4
-
-    // Inner Softness of the `Circle`. Higher softness value yields a smoother and blurred edge.
-    float innerSoftness;
-    // Example: 1.5
-
-    // Outer Softness of the `Circle`. Higher softness value yields a smoother and blurred edge.
-    float outerSoftness;
-    // Example: 1.5
-
-    // Absolute Coordinates of the Center of the `Circle`. Defaults to the center of the Window, that is, `vec2(resolution.xy/2.)`
-    vec2 center;
-    // Example: vec2(resolution.xy)
-
-    // Inner Color of the `Circle`.
-    vec4 color;
-    // Example: vec4(0.0, 1.0, 1.0, 1.0)
-
-    // Outer Color of the `Circle`.
-    vec4 borderColor;
-    // Example: vec4(1.0, 0.0, 0.5, 1.0)
-
-} circle;
-
-struct ConnectorHalf {
+// Connector Half
+struct ConnectorHalf
+{
     // Represents the left and right sides of a `Connector`.
 
-    // Specifies whether the `ConnectorHalf` should be enabled.
+    // Specifies whether the `Connector Half` should be enabled.
     int enable;
     // Example: 0
 
-    // Height of the `ConnectorHalf`.
+    // Height of the `Connector Half`.
     float height;
     // Example: 3
 
-    // BorderSize of the `ConnectorHalf`.
+    // BorderSize of the `Connector Half`.
     float borderSize;
     // Example: 2
 
-    // Inner Softness of the `ConnectorHalf`. Higher softness value yields a smoother and blurred edge.
+    // Inner Softness of the `Connector Half`. Higher softness value yields a smoother and blurred edge.
     float innerSoftness;
     // Example: 0.5
 
-    // Outer Softness of the `ConnectorHalf`. Higher softness value yields a smoother and blurred edge.
+    // Outer Softness of the `Connector Half`. Higher softness value yields a smoother and blurred edge.
     float outerSoftness;
     // Example: 0.5
 
-    // Inner Color of the `ConnectorHalf`.
+    // Inner Color of the `Connector Half`.
     vec4 color;
     // Example: vec4(1.0, 1.0, 0.0, 1.0)
 
-    // Outer Color of the `ConnectorHalf`.
+    // Outer Color of the `Connector Half`.
     vec4 borderColor;
     // Example: vec4(1.0, 1.0, 1.0, 1.0)
 };
 
-struct Connector {
+struct Connector
+{
     // Represents the combination of left and right `Connectors`.
 
-    // Left `ConnectorHalf`
+    // Left `Connector Half`
     ConnectorHalf left;
     // Example: -
 
@@ -318,16 +272,103 @@ struct Connector {
     vec2 rightCenter;
     // Example: -
 
-    // Whether to loop the `Connectors` for the first and last `Particles`, when `left ConnectorHalf` is enabled or `right ConnectorHalf` is enabled for the last `Particle`. Does not necessarily create merged `Connectors` at all `fragmentAngle` values.
+    // Whether to loop the `Connectors` for the first and last `Particles`, when `left Connector Half` is enabled or
+    // `right Connector Half` is enabled for the last `Particle`. Does not necessarily create merged `Connectors` at all
+    // `fragmentAngle` values.
     int loop;
     // Example: 1
 
-    // 1 to specify whether the first and last `Connectors` should be merged, when `left ConnectorHalf` is enabled or `right ConnectorHalf` is enabled for the last `Particle`.
+    // 1 to specify whether the first and last `Connectors` should be merged, when `left Connector Half` is enabled or
+    // `right Connector Half` is enabled for the last `Particle`.
     int mergeEnds;
     // Example: 1
 };
 
-struct Particle {
+struct Bar
+{
+    // Represents a `Bar`.
+
+    // Stores the current `Fragment`.
+    Fragment fragment;
+    // Example: -
+
+    // Stores captured Audio Data.
+    Audio audio;
+    // Example: -
+
+    // Stores the `Top Cap` for the `Bar`.
+    Cap upCap;
+    // Example: -
+
+    // Stores the `Bottom Cap for the Bar`.
+    Cap downCap;
+    // Example: -
+
+    // Specifies the type of `Bars` to draw: 0 for `Angular`, 1 for `Rectangular` and 2 for `Rounded`. Only `Angular`
+    // and `Rectangular Bars` can be merged.
+    int type;
+    // Example: 1
+
+    // Specifies merging of the `Bar` on the Left. Either 0 or 1.
+    int mergeLeftBar;
+    // Example: 1
+
+    // Specifies merging of the `Bar` on the Right. Either 0 or 1.
+    int mergeRightBar;
+    // Example: 1
+
+    // 1 to specify whether the first and last `Bars` should be merged, when `mergeLeftBar` is 1 or mergeRightBar is 1
+    // for the last Bar. `clampLeftMergeBorder` and `clampRightMergeBorder` should both be 0 for this setting to take
+    // effect.
+    int mergeEnds;
+    // Example: 1
+
+    // 1 to specify left Border to be always present on the very first `Bar`, when `mergeLeftBar` is 1.
+    int clampLeftMergeBorder;
+    // Example: 1
+
+    // 1 to specify right Border to be always present on the very last `Bar`, when `mergeRightBar` is 1.
+    int clampRightMergeBorder;
+    // Example: 1
+
+    // Specifies the offset of the `Bar`. Added to `Bar's` coordinates.
+    vec2 offset;
+    // Example: vec2(0,-12)
+
+    // Specifies the Size of the `Bar`. `x, y and z` represent the minimum upwards height, horizontal size, and the
+    // minimum downwards height.
+    vec3 size;
+    // Example: vec3(3, 12, 3)
+
+    // Specifies the BorderSize of the `Bar`. `x, y and z` represent the top, left & right, down side Borders.
+    vec3 borderSize;
+    // Example: vec3(1, 2, 1)
+
+    // Softness of the Inner Edge of the `Bar`. `x, y and z` respectively represent softness values for the `top`, `left
+    // & right`, and `bottom` edges. Higher softness value yields a smoother and blurred edge.
+    vec3 innerSoftness;
+    // Example: vec3(0.5)
+
+    // Softness of the Outer Edge of the `Bar`. `x, y and z` respectively represent softness values for the `top`, `left
+    // & right`, and `bottom` edges. Higher softness value yields a smoother and blurred edge.
+    vec3 outerSoftness;
+    // Example: vec3(0.5)
+
+    // Specifies the Inner Color of the `Bar`.
+    vec4 color;
+    // Example: vec4(0,1,1,1)
+
+    // Specifies the Outer Color of the `Bar`.
+    vec4 borderColor;
+    // Example: vec4(0.0, 1.0, 0.5, 1.0)
+
+    // Specifies the background Color over which `Bars` are displayed.
+    vec4 bgColor;
+    // Example: vec4(0.5)
+} bar;
+
+struct Particle
+{
     // Represents a `Particle`.
 
     // Stores the current `Fragment`.
@@ -370,7 +411,8 @@ struct Particle {
     float outerSoftness;
     // Example: 0.5
 
-    // Specifies the offset of the `Particle`. Added to the coordinates of the `Particle`. Use `setOffsets()` to properly show connectors if enabled.
+    // Specifies the offset of the `Particle`. Added to the coordinates of the `Particle`. Use `setOffsets()` to
+    // properly show connectors if enabled.
     vec2 offset;
     // Example: vec2(1,12)
 
@@ -405,5 +447,5 @@ struct Particle {
 #define PARTICLE_DOWN_RIGHT_CONNECTOR_OUTER_SDF 19
 #define PARTICLE_DOWN_CAP_SDF 20
 
-int zOrder[21] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-float sdfs[21] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+int zOrder[21] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+float sdfs[21] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

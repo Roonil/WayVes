@@ -5,16 +5,24 @@ bool ShaderStage::shouldSyncFiles()
     return ((fragmentShaderFile != NULL && fragmentShaderFile->fileIsDirty.load()) || (vertexShaderFile != NULL && vertexShaderFile->fileIsDirty.load()));
 }
 
-bool ShaderStage::syncFiles(VertexShaderCompilationArgs* vertexArgs, FragmentShaderCompilationArgs* fragmentArgs)
+bool ShaderStage::syncFiles(VertexShaderCompilationArgs* vertexArgs, FragmentShaderCompilationArgs* fragmentArgs, FilesWatcher* filesWatcherInstance)
 {
     if (fragmentShaderFile != NULL && fragmentShaderFile->fileIsDirty.load()) {
         fragmentShaderFile->fileIsDirty.exchange(false);
         fragmentShaderFile->reloadFile();
+
+        for (auto i : fragmentShaderFile->includedFiles) {
+            filesWatcherInstance->addDependency(i, fragmentShaderFile);
+        }
     }
 
     if (vertexShaderFile != NULL && vertexShaderFile->fileIsDirty.load()) {
         vertexShaderFile->fileIsDirty.exchange(false);
         vertexShaderFile->reloadFile();
+
+        for (auto i : vertexShaderFile->includedFiles) {
+            filesWatcherInstance->addDependency(i, vertexShaderFile);
+        }
     }
 
     unsigned int tempProgram = 0;
@@ -29,6 +37,7 @@ bool ShaderStage::syncFiles(VertexShaderCompilationArgs* vertexArgs, FragmentSha
 
     if (!tempVertexShader->isValid) {
         delete tempVertexShader;
+        delete fragmentArgs;
         return false;
     }
 

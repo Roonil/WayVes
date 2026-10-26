@@ -2,7 +2,7 @@ struct Glow
 {
     // Adds a Glowing Effect to the final output of the Shader.
 
-    // Blend mode for the glow effect. 0 = Additive, 1 = Overlay
+    // Blend mode for the Glow effect. 0 = Additive, 1 = Overlay
     float blendMode;
     // Example: 0
 
@@ -13,6 +13,11 @@ struct Glow
     // Offset (in degrees) for Glow directions
     float offsetAngle;
     // Example: 90
+
+    // Specifies the influence of the supplied Glow color on the final output. 0 Means the Colors from the sample are
+    // used, 1 means the supplied Color is used to apply on the Glow Mask/Effect. Between 0 and 1.
+    float colorInfluence;
+    // Example: 1
 
     // Max Angle (in degrees) for Glow directions
     float maxAngle;

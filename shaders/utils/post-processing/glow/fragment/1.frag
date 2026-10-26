@@ -52,6 +52,7 @@ void defaultGlowValues(inout Glow glow)
     glow.onTop = 0;
     glow.coords = gl_FragCoord.xy;
     glow.maxAngle = 360;
+    glow.colorInfluence = 1;
 
     glow.quality = 4;
     vec4 color = vec4(0.5, 0.5, 0.5, 1.0);
@@ -96,7 +97,9 @@ void main()
 
     Color /= (glow.quality) * (glow.directions);
 
-    FragColor = (vec4(glow.color.xyz * glow.color.w, glow.color.w)) * glow.intensity * length(Color);
+    vec4 finalGlowColor = mix(Color, glow.color, glow.colorInfluence);
+
+    FragColor = (vec4(finalGlowColor.xyz * finalGlowColor.w, finalGlowColor.w)) * glow.intensity * length(Color);
 
     FragColor = addColors(glow.blendMode, mix(prevColor, FragColor, glow.onTop), mix(FragColor, prevColor, glow.onTop));
 

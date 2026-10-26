@@ -78,7 +78,6 @@ void defaultParticleValues()
     particle.feather = 0.5;
     particle.position = vec3(gl_FragCoord.xy, 0);
     particle.opacityMultiplier = 1;
-
     particle.colorIntensityAddStrength = 0.1;
     particle.antiAlias = 4.5;
 }
@@ -92,6 +91,8 @@ void defaultFractalFieldValues()
     fractalField.gamma = 1;
     fractalField.minVal = -1;
     fractalField.maxVal = 1;
+
+    fractalField.noiseType = 0;
 
     fractalField.noise = vec3(0);
 
@@ -125,17 +126,54 @@ void defaultSphereValues()
 void setAudio()
 {
 
-    float audioRadius = (max(texture(audioR, audio.samplePoints[0]).x, texture(audioR, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x) + max(texture(audioL, audio.samplePoints[0]).x, texture(audioL, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x)) / 2;
-    float audioFractal1 = (max(texture(audioR, audio.samplePoints[1]).x, texture(audioR, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x) + max(texture(audioL, audio.samplePoints[1]).x, texture(audioL, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x)) / 2;
-    float audioFractal2 = (max(texture(audioR, audio.samplePoints[2]).x, texture(audioR, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x) + max(texture(audioL, audio.samplePoints[2]).x, texture(audioL, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x)) / 2;
-    float audioFractal3 = (max(texture(audioR, audio.samplePoints[3]).x, texture(audioR, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x) + max(texture(audioL, audio.samplePoints[3]).x, texture(audioL, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x)) / 2;
-    float audioFractal4 = (max(texture(audioR, audio.samplePoints[4]).x, texture(audioR, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x) + max(texture(audioL, audio.samplePoints[4]).x, texture(audioL, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x)) / 2;
-    float audioFractal5 = (max(texture(audioR, audio.samplePoints[5]).x, texture(audioR, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x) + max(texture(audioL, audio.samplePoints[5]).x, texture(audioL, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x)) / 2;
-    float audioFractal6 = (max(texture(audioR, audio.samplePoints[6]).x, texture(audioR, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x) + max(texture(audioL, audio.samplePoints[6]).x, texture(audioL, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x)) / 2;
-    float audioFractal7 = (max(texture(audioR, audio.samplePoints[7]).x, texture(audioR, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x) + max(texture(audioL, audio.samplePoints[7]).x, texture(audioL, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x)) / 2;
-    float audioFractal8 = (max(texture(audioR, audio.samplePoints[8]).x, texture(audioR, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x) + max(texture(audioL, audio.samplePoints[8]).x, texture(audioL, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x)) / 2;
+    float audioRadius = (max(texture(audioR, audio.samplePoints[0]).x,
+                             texture(audioR, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x) +
+                         max(texture(audioL, audio.samplePoints[0]).x,
+                             texture(audioL, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x)) /
+                        2;
+    float audioFractal1 = (max(texture(audioR, audio.samplePoints[1]).x,
+                               texture(audioR, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x) +
+                           max(texture(audioL, audio.samplePoints[1]).x,
+                               texture(audioL, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x)) /
+                          2;
+    float audioFractal2 = (max(texture(audioR, audio.samplePoints[2]).x,
+                               texture(audioR, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x) +
+                           max(texture(audioL, audio.samplePoints[2]).x,
+                               texture(audioL, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x)) /
+                          2;
+    float audioFractal3 = (max(texture(audioR, audio.samplePoints[3]).x,
+                               texture(audioR, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x) +
+                           max(texture(audioL, audio.samplePoints[3]).x,
+                               texture(audioL, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x)) /
+                          2;
+    float audioFractal4 = (max(texture(audioR, audio.samplePoints[4]).x,
+                               texture(audioR, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x) +
+                           max(texture(audioL, audio.samplePoints[4]).x,
+                               texture(audioL, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x)) /
+                          2;
+    float audioFractal5 = (max(texture(audioR, audio.samplePoints[5]).x,
+                               texture(audioR, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x) +
+                           max(texture(audioL, audio.samplePoints[5]).x,
+                               texture(audioL, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x)) /
+                          2;
+    float audioFractal6 = (max(texture(audioR, audio.samplePoints[6]).x,
+                               texture(audioR, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x) +
+                           max(texture(audioL, audio.samplePoints[6]).x,
+                               texture(audioL, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x)) /
+                          2;
+    float audioFractal7 = (max(texture(audioR, audio.samplePoints[7]).x,
+                               texture(audioR, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x) +
+                           max(texture(audioL, audio.samplePoints[7]).x,
+                               texture(audioL, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x)) /
+                          2;
+    float audioFractal8 = (max(texture(audioR, audio.samplePoints[8]).x,
+                               texture(audioR, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x) +
+                           max(texture(audioL, audio.samplePoints[8]).x,
+                               texture(audioL, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x)) /
+                          2;
 
-    float audios[8] = { audioFractal1, audioFractal2, audioFractal3, audioFractal4, audioFractal5, audioFractal6, audioFractal7, audioFractal8 };
+    float audios[8] = {audioFractal1, audioFractal2, audioFractal3, audioFractal4,
+                       audioFractal5, audioFractal6, audioFractal7, audioFractal8};
 
     float temp;
     temp = max(audios[0], audios[2]);
@@ -214,7 +252,12 @@ void setAudio()
     audios[5] = min(audios[5], audios[6]);
     audios[6] = temp;
 
-    audio.value = audio.multiplier * mix(mix(audios[7] * audios[6] - audios[1] * audios[0], audios[7] * audios[6], audios[5]), mix(audios[6] * mix(audios[7] - audios[0], audios[6] - audios[3], audios[7] * audios[6]) - pow(audios[1] * audios[0], audio.exponentiationFactor), audios[7] * audios[6], audios[5] * audios[4]), audio.mixing);
+    audio.value = audio.multiplier *
+                  mix(mix(audios[7] * audios[6] - audios[1] * audios[0], audios[7] * audios[6], audios[5]),
+                      mix(audios[6] * mix(audios[7] - audios[0], audios[6] - audios[3], audios[7] * audios[6]) -
+                              pow(audios[1] * audios[0], audio.exponentiationFactor),
+                          audios[7] * audios[6], audios[5] * audios[4]),
+                      audio.mixing);
 
     audio.bass = audio.bassMultiplier * abs(audioRadius);
 

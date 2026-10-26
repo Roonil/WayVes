@@ -19,6 +19,7 @@ Check out the WayVes Wiki <a href="https://roonil.github.io">here</a>
 - Modular Configuration specification via YAML
 - Advanced Customisability for each Visualiser type
 - Hot-reload for GLSL files: Watch your visual changes update in real-time!
+- DMA-BUF exports (zero-copy, on the GPU): Export the final rendered Shader output to another Application
 - Full control over various Audio capturing and transformation properties
 - Supports real-time property updates for the Visualisers using Named Pipes
 - Separate Post-Processing Configuration to chain multiple effects
@@ -26,7 +27,7 @@ Check out the WayVes Wiki <a href="https://roonil.github.io">here</a>
 
 # Showcase
 
-https://github.com/user-attachments/assets/b2676b9f-d041-4f15-89f2-f0fec04cbdbb
+DMA-BUF exports used in Quickshell config: [WayVes Shell](https://github.com/Roonil/wayves-shell/) ![WayVes Shell](assets/Quickshell_DMA-BUF.png)<br>
 
 Everything, Everywhere, All at once! (Wallpaper link: [Here](https://www.freepik.com/free-ai-image/batmobile-concept-car-with-neon-lights_233259012.htm#fromView=keyword&page=1&position=14&uuid=4847fb99-2cb4-4212-8c9d-b449f77feeeb&query=Gaming+car+wallpaper))
 

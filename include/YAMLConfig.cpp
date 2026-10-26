@@ -72,6 +72,9 @@ void YAMLConfig::initialiseDefaultValues(YAMLConfig *config)
             initialisePipewireSettings(currentAudio->pipewireSettings);
         }
 
+        currentAudio->pipewireSettings->ownsAudioFormat = false;
+        currentAudio->pipewireSettings->ownsTargetObject = false;
+
         AudioOverride *currentGlobalAudioOverride = currentAudio->audioOverrides;
 
         if (currentGlobalAudioOverride == NULL)

@@ -17,7 +17,7 @@ VertexShader::VertexShader(std::string shaderSource, ShaderCompilationArgs* args
     compileShaderSource(args);
 }
 
-void Shader::checkCompileErrors(std::string type, int tolerable)
+void Shader::checkCompileErrors(std::string type)
 {
     int success;
     char infoLog[1024];
@@ -49,7 +49,7 @@ void VertexShader::compileShaderSource(
         NULL);
 
     glCompileShader(shaderObject);
-    checkCompileErrors("VERTEX", args->tolerable);
+    checkCompileErrors("VERTEX");
 
     if (*glProgram == 0)
         *glProgram = glCreateProgram();
@@ -57,7 +57,7 @@ void VertexShader::compileShaderSource(
     glAttachShader(*glProgram, shaderObject);
 
     glLinkProgram(*glProgram);
-    checkCompileErrors("PROGRAM", args->tolerable);
+    checkCompileErrors("PROGRAM");
 
     glGenVertexArrays(1, &vertexArrayObject);
     glGenBuffers(1, &vertexBufferObject);
@@ -124,7 +124,7 @@ void FragmentShader::compileShaderSource(
         NULL);
 
     glCompileShader(shaderObject);
-    checkCompileErrors("FRAGMENT", args->tolerable);
+    checkCompileErrors("FRAGMENT");
 
     if (*glProgram == 0)
         *glProgram = glCreateProgram();
@@ -132,7 +132,7 @@ void FragmentShader::compileShaderSource(
     glAttachShader(*glProgram, shaderObject);
 
     glLinkProgram(*glProgram);
-    checkCompileErrors("PROGRAM", args->tolerable);
+    checkCompileErrors("PROGRAM");
 
     glUseProgram(*glProgram);
 
@@ -158,15 +158,20 @@ void FragmentShader::compileShaderSource(
     unsigned int* atomicImageTexture = NULL;
     unsigned int* imageTexture = NULL;
 
-    if (args != NULL && ((FragmentShaderCompilationArgs*)args)->atomicImageTexture != NULL) {
-        numAtomicTextures = ((FragmentShaderCompilationArgs*)args)->numAtomicTextures;
+    FragmentShaderCompilationArgs* fragmentArgs = static_cast<FragmentShaderCompilationArgs*>(args);
 
-        atomicImageTexture = ((FragmentShaderCompilationArgs*)args)->atomicImageTexture;
+    if (fragmentArgs != NULL) {
+        dmaBufHandlers = fragmentArgs->dmaBufHandlers;
+    }
+    if (fragmentArgs != NULL && fragmentArgs->atomicImageTexture != NULL) {
+        numAtomicTextures = fragmentArgs->numAtomicTextures;
+
+        atomicImageTexture = fragmentArgs->atomicImageTexture;
     }
 
-    if (args != NULL && ((FragmentShaderCompilationArgs*)args)->imageTexture != NULL) {
-        numImageTextures = ((FragmentShaderCompilationArgs*)args)->numImageTextures;
-        imageTexture = ((FragmentShaderCompilationArgs*)args)->imageTexture;
+    if (fragmentArgs != NULL && fragmentArgs->imageTexture != NULL) {
+        numImageTextures = fragmentArgs->numImageTextures;
+        imageTexture = fragmentArgs->imageTexture;
     }
 
     unsigned int imageUnit = 0;
@@ -227,7 +232,6 @@ void FragmentShader::compileShaderSource(
         delete args;
 }
 
-// 0: bool, 1: num
 int detectType(std::string value)
 {
 
@@ -264,7 +268,7 @@ void parseValue(std::string value, double* numArray, bool* boolArray)
     int idx = 0;
     while (std::getline(valueStream, valueQuantum, ',')) {
         if (type == 2)
-            numArray[idx] = std::stod(valueQuantum) / 255.0;
+            numArray[idx] = std::stod(valueQuantum) / (idx == 3 ? 1.0 : 255.0);
         else if (type == 3)
             numArray[idx] = std::stod(valueQuantum);
         else
@@ -463,27 +467,23 @@ void ComputeShader::compileShaderSource(
     shaderObject = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(shaderObject, 1, &charShaderSource, NULL);
     glCompileShader(shaderObject);
-    checkCompileErrors("COMPUTE", args->tolerable);
+    checkCompileErrors("COMPUTE");
 
     if (*glProgram == 0)
         *glProgram = glCreateProgram();
 
     glAttachShader(*glProgram, shaderObject);
     glLinkProgram(*glProgram);
-    checkCompileErrors("PROGRAM", args->tolerable);
-    // cleanup
+    checkCompileErrors("PROGRAM");
     glDeleteShader(shaderObject);
 
-    // create input/output textures
     glGenTextures(1, &outputTexture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, outputTexture);
 
-    // turns out we need this. huh.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    // create empty texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, NULL);
     glBindImageTexture(0, outputTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     glUseProgram(0);

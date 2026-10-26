@@ -21,11 +21,13 @@ private:
 
 public:
     bool shouldRender = true, renderAudio = false, audioLoaded = false,
-         shouldGLFinish = false, isFirst = false;
-
+         shouldGLFinish = false, isFirst = false, exportDMABuf = false;
+    uint32_t audioConsumerBit;
     int ticks = 0, fps = 60;
     unsigned int prevStageTexture;
     FilesWatcher* filesWatcherInstance = NULL;
+
+    std::vector<std::unique_ptr<DMABufHandler>> dmaBufHandlers;
 
     GLuint *atomicImageTexture = NULL, *imageTexture = NULL;
 
@@ -39,6 +41,7 @@ public:
     Files* files = NULL;
 
     ShaderStage* startStage = NULL;
+    ShaderStage* finalStage = NULL;
 
     PipeWireHandler* pipeWireSetting;
 

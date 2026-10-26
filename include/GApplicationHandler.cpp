@@ -12,10 +12,26 @@ void GApplicationHandler::rendererThread(gpointer data)
     double minFrameTime = 1.0 / fps;
     struct timespec request = { 0, 0 };
 
+    bool clearOnNextFrame = false;
+    bool hasCleared = false;
     while (true) {
 
-        if (GTK_IS_GL_AREA(windowHandler->glArea))
+        if (clearOnNextFrame) {
             g_idle_add_once((GSourceOnceFunc)gtk_gl_area_queue_render, windowHandler->glArea);
+
+            hasCleared = true;
+            clearOnNextFrame = false;
+        }
+
+        if (!hasCleared && !windowHandler->shaderProgram.shouldRender) {
+            clearOnNextFrame = true;
+        }
+
+        if (GTK_IS_GL_AREA(windowHandler->glArea) && (windowHandler->shaderProgram.audioShaderStages->hasConsumers() || windowHandler->shaderProgram.ticks == 0)) {
+            hasCleared = false;
+            clearOnNextFrame = false;
+            g_idle_add_once((GSourceOnceFunc)gtk_gl_area_queue_render, windowHandler->glArea);
+        }
 
         ts = g_timer_elapsed(timer, NULL);
 
@@ -30,7 +46,10 @@ void GApplicationHandler::rendererThread(gpointer data)
             sleepTime += minFrameTime - deltaTime;
 
             sleepTime = std::max(0.0, sleepTime);
-            request.tv_nsec = (int)(sleepTime * 1000000000.0);
+            long longSleepTime = (long)(sleepTime * 1000000000.0);
+
+            request.tv_nsec = longSleepTime % 1000000000;
+            request.tv_sec = longSleepTime / 1000000000;
 
             if (request.tv_nsec > 0)
                 nanosleep(&request, NULL);
@@ -44,7 +63,6 @@ void GApplicationHandler::activateApplication(Configs* configs, GDBusConnection*
 
     FilesWatcher* filesWatcher = new FilesWatcher();
     filesWatcher->createThread();
-
     timer = g_timer_new();
 
     std::string stylesCSSPath = (configs->directoryPrefix + "styles.css");
@@ -52,7 +70,7 @@ void GApplicationHandler::activateApplication(Configs* configs, GDBusConnection*
     GtkCssProvider* cssProvider = gtk_css_provider_new();
     GtkCssProvider* cssProviderGlobal = gtk_css_provider_new();
 
-    gtk_css_provider_load_from_string(cssProviderGlobal, "* { background-color: transparent; background-image: none;}");
+    gtk_css_provider_load_from_string(cssProviderGlobal, "* { background-color: transparent; background-image: none;border-radius:0px;}");
     gtk_css_provider_load_from_path(cssProvider, stylesCSSPath.c_str());
 
     gtk_style_context_add_provider_for_display(gdk_display_get_default(),

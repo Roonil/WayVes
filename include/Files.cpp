@@ -2,9 +2,9 @@
 
 void Files::setupShaderFiles(std::map<std::string, std::string> overridesMap, PostProcessingShader* postProcessingShaders, int postProcessingShadersCount)
 {
-    vertexShaderFiles.loadShaders(shaderName, configFileName, directoryPrefix, ShaderTypes::VERTEX, overridesMap, { });
-    fragmentShaderFiles.loadShaders(shaderName, configFileName, directoryPrefix, ShaderTypes::FRAGMENT, overridesMap, { });
-    computeShaderFile.loadShaders(shaderName, configFileName, directoryPrefix, ShaderTypes::COMPUTE, overridesMap, { });
+    vertexShaderFiles.loadShaders(shaderProps->shaderName, shaderProps->configFileName, directoryPrefix, ShaderTypes::VERTEX, overridesMap, { });
+    fragmentShaderFiles.loadShaders(shaderProps->shaderName, shaderProps->configFileName, directoryPrefix, ShaderTypes::FRAGMENT, overridesMap, { });
+    computeShaderFile.loadShaders(shaderProps->shaderName, shaderProps->configFileName, directoryPrefix, ShaderTypes::COMPUTE, overridesMap, { });
 
     std::map<std::string, int> vars = { };
 
@@ -41,9 +41,8 @@ void Files::setupShaderFiles(std::map<std::string, std::string> overridesMap, Po
             }
 
             vars["postProcessingNumber"] = j;
-            postProcessingTempVertexFile->loadShaders(postProcessingShaderName, configFileName, directoryPrefix, ShaderTypes::VERTEX, overridesMap, vars);
-
-            postProcessingTempFragmentFile->loadShaders(postProcessingShaderName, configFileName, directoryPrefix, ShaderTypes::FRAGMENT, overridesMap, vars);
+            postProcessingTempVertexFile->loadShaders(postProcessingShaderName, shaderProps->configFileName, directoryPrefix, ShaderTypes::VERTEX, overridesMap, vars);
+            postProcessingTempFragmentFile->loadShaders(postProcessingShaderName, shaderProps->configFileName, directoryPrefix, ShaderTypes::FRAGMENT, overridesMap, vars);
 
             while (postProcessingFragmentShaderFilesIterator->next != NULL)
                 postProcessingFragmentShaderFilesIterator = postProcessingFragmentShaderFilesIterator->next;
@@ -78,16 +77,16 @@ void Files::setupAudioShaderFiles(AudioOverride* audioOverrides)
     passShaderFile.loadShaders("utils/audio/pass", "", directoryPrefix, ShaderTypes::FRAGMENT, { }, { });
 }
 
-void Files::LoadFiles(std::map<std::string, std::string> overridesMap, AudioOverride* audioOverrides, PostProcessingShader* postProcessingShaders, int postProcessingShadersCount)
+void Files::LoadFiles()
 {
-    setupShaderFiles(overridesMap, postProcessingShaders, postProcessingShadersCount);
+    setupShaderFiles(overridesMap, shaderProps->postProcessingShaders, shaderProps->postProcessingShaders_count);
 
-    setupAudioShaderFiles(audioOverrides);
+    setupAudioShaderFiles(shaderProps->audioOverrides);
 }
 
-Files::Files(std::string shaderName, std::string configFileName, std::string directoryPrefix)
+Files::Files(std::string directoryPrefix, ShaderProps* shaderProps, std::map<std::string, std::string> overridesMap)
 {
-    this->shaderName = shaderName;
+    this->shaderProps = shaderProps;
     this->directoryPrefix = directoryPrefix;
-    this->configFileName = configFileName;
+    this->overridesMap = overridesMap;
 }

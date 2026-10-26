@@ -1,9 +1,15 @@
 #include <epoxy/gl.h>
 
 #include "ShaderProgram.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include <iomanip>
+#define EGL_EGLEXT_PROTOTYPES
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <fcntl.h>
+
+#include <drm/drm_fourcc.h>
+#include <memory>
 
 void ShaderProgram::initializeShaders(GtkGLArea* area)
 {
@@ -30,7 +36,7 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
     }
 
     while (fragmentShaderFilesIterator != NULL) {
-        VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram, &currentStage->uniformLocations, NULL, NULL);
+        VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram, &currentStage->uniformLocations, NULL, NULL);
         if (vertexShaderFilesIterator == NULL) {
             vertexShaderFilesIterator = new ShaderFiles;
             vertexShaderFilesIterator->fileContent = "";
@@ -41,21 +47,24 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
         currentStage->vertexShaderFile = vertexShaderFilesIterator;
         currentStage->fragmentShaderFile = fragmentShaderFilesIterator;
 
-        for (auto i : vertexShaderFilesIterator->includedFiles) {
-            filesWatcherInstance->addDependency(i, vertexShaderFilesIterator);
+        if (shaderProps->hotReload) {
+            for (auto i : vertexShaderFilesIterator->includedFiles) {
+                filesWatcherInstance->addDependency(i, vertexShaderFilesIterator);
+            }
+
+            for (auto i : fragmentShaderFilesIterator->includedFiles) {
+                filesWatcherInstance->addDependency(i, fragmentShaderFilesIterator);
+            }
         }
 
-        for (auto i : fragmentShaderFilesIterator->includedFiles) {
-            filesWatcherInstance->addDependency(i, fragmentShaderFilesIterator);
-        }
-
-        FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram, &currentStage->uniformLocations,
+        FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram, &currentStage->uniformLocations,
                                                                                &uniformValues,
-                                                                               &uniformTypes)
-                                                                         : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram,
+                                                                               &uniformTypes, &dmaBufHandlers)
+                                                                         : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram,
                                                                                &currentStage->uniformLocations,
                                                                                &uniformValues,
                                                                                &uniformTypes,
+                                                                               &dmaBufHandlers,
                                                                                shaderProps->atomicTextures, shaderProps->imageTextures, atomicImageTexture, imageTexture);
 
         currentStage->fragmentShader = new FragmentShader(fragmentShaderFilesIterator->fileContent, args);
@@ -65,8 +74,8 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
             return;
         }
 
-        if (fragmentShaderFilesIterator->next != NULL || !postProcessingFragmentShaderFilesIterator->fileContent.empty())
-            currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className);
+        if (shaderProps->renderingMode != 0 || fragmentShaderFilesIterator->next != NULL || !postProcessingFragmentShaderFilesIterator->fileContent.empty())
+            currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className, shaderProps->renderingMode != 0 && postProcessingFragmentShaderFilesIterator->fileContent.empty() && fragmentShaderFilesIterator->next == NULL);
 
         fragmentShaderFilesIterator = fragmentShaderFilesIterator->next;
 
@@ -82,8 +91,7 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
     if (!postProcessingFragmentShaderFilesIterator->fileContent.empty())
 
         while (postProcessingFragmentShaderFilesIterator != NULL) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram, &currentStage->uniformLocations, NULL, NULL);
-
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram, &currentStage->uniformLocations, NULL, NULL);
             if (postProcessingVertexShaderFilesIterator == NULL) {
                 postProcessingVertexShaderFilesIterator = new ShaderFiles;
                 postProcessingVertexShaderFilesIterator->fileContent = "";
@@ -94,22 +102,24 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
             currentStage->vertexShaderFile = postProcessingVertexShaderFilesIterator;
             currentStage->fragmentShaderFile = postProcessingFragmentShaderFilesIterator;
 
-            if (postProcessingVertexShaderFilesIterator != NULL)
-                for (auto i : postProcessingVertexShaderFilesIterator->includedFiles) {
-                    filesWatcherInstance->addDependency(i, postProcessingVertexShaderFilesIterator);
+            if (shaderProps->hotReload) {
+                if (postProcessingVertexShaderFilesIterator != NULL)
+                    for (auto i : postProcessingVertexShaderFilesIterator->includedFiles) {
+                        filesWatcherInstance->addDependency(i, postProcessingVertexShaderFilesIterator);
+                    }
+
+                for (auto i : postProcessingFragmentShaderFilesIterator->includedFiles) {
+                    filesWatcherInstance->addDependency(i, postProcessingFragmentShaderFilesIterator);
                 }
-
-            for (auto i : postProcessingFragmentShaderFilesIterator->includedFiles) {
-                filesWatcherInstance->addDependency(i, postProcessingFragmentShaderFilesIterator);
             }
-
-            FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram, &currentStage->uniformLocations,
+            FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram, &currentStage->uniformLocations,
                                                                                    &uniformValues,
-                                                                                   &uniformTypes)
-                                                                             : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 0, &currentStage->glProgram,
+                                                                                   &uniformTypes, &dmaBufHandlers)
+                                                                             : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, &currentStage->glProgram,
                                                                                    &currentStage->uniformLocations,
                                                                                    &uniformValues,
                                                                                    &uniformTypes,
+                                                                                   &dmaBufHandlers,
                                                                                    shaderProps->atomicTextures, shaderProps->imageTextures, atomicImageTexture, imageTexture);
 
             currentStage->fragmentShader = new FragmentShader(postProcessingFragmentShaderFilesIterator->fileContent, args);
@@ -119,8 +129,8 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
                 return;
             }
 
-            if (postProcessingFragmentShaderFilesIterator->next != NULL)
-                currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className);
+            if (shaderProps->renderingMode != 0 || postProcessingFragmentShaderFilesIterator->next != NULL)
+                currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className, shaderProps->renderingMode != 0 && postProcessingFragmentShaderFilesIterator->next == NULL);
 
             postProcessingFragmentShaderFilesIterator = postProcessingFragmentShaderFilesIterator->next;
 
@@ -135,7 +145,6 @@ void ShaderProgram::initializeShaders(GtkGLArea* area)
 }
 
 #define TWOPI 6.28318530718
-// #define PI 3.14159265359
 #define window(t, sz) \
     (0.53836 - (0.46164 * cos(TWOPI * (double)t / (double)sz)))
 
@@ -217,9 +226,6 @@ void applyFFT(float* samples, int n_samples, float fftScale, float fftCutOff)
     /* abs and log scale */
     for (n = 0; n < n_samples; n += 2) {
 
-        if (data[n] < 0.0F)
-            data[n] = -data[n];
-
         data[n] = sqrt(data[n] * data[n] + data[n + 1] * data[n + 1]);
         data[n] = log(data[n] + 1) / 3;
         data[n] *= std::max((((float)n / (float)n_samples) * fftScale) + (1.0F - fftCutOff), 1.0F);
@@ -230,11 +236,12 @@ void applyFFT(float* samples, int n_samples, float fftScale, float fftCutOff)
 
 void ShaderProgram::applyAudioTransformations()
 {
-
     pthread_mutex_lock(&pipeWireSetting->mutex);
     bool modified = pipeWireSetting->modified;
     if (modified)
         pipeWireSetting->modified = false;
+
+    audioShaderStages->setApplyFFT(pipeWireSetting->applyFFT);
 
     if (modified && pipeWireSetting->applyFFT) {
 
@@ -265,24 +272,24 @@ void ShaderProgram::applyAudioTransformations()
         pthread_mutex_unlock(&pipeWireSetting->mutex);
 
         if (audioShaderStages->passStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->passStage->syncFiles(vertexArgs, args);
+            audioShaderStages->passStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         if (audioShaderStages->gravityStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->gravityStage->syncFiles(vertexArgs, args);
+            audioShaderStages->gravityStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         if (audioShaderStages->averageStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->averageStage->syncFiles(vertexArgs, args);
+            audioShaderStages->averageStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         audioShaderStages->applyGravityPassShader(pipeWireSetting->audioRSize, 1, "audioR", shaderProps->shaderName);
@@ -291,10 +298,10 @@ void ShaderProgram::applyAudioTransformations()
         if (*shaderProps->audioOverrides->smoothAudio || isFirst) {
 
             if (audioShaderStages->smoothStage->shouldSyncFiles()) {
-                VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-                FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+                VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+                FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-                audioShaderStages->smoothStage->syncFiles(vertexArgs, args);
+                audioShaderStages->smoothStage->syncFiles(vertexArgs, args, filesWatcherInstance);
             }
 
             audioShaderStages->applySmoothPassShader(pipeWireSetting->audioRSize, shaderProps->audioOverrides->smoothSettings->adjacentSampleNums, 1, "audioR", shaderProps->shaderName);
@@ -328,24 +335,24 @@ void ShaderProgram::applyAudioTransformations()
         pthread_mutex_unlock(&pipeWireSetting->mutex);
 
         if (audioShaderStages->passStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->passStage->syncFiles(vertexArgs, args);
+            audioShaderStages->passStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         if (audioShaderStages->gravityStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->gravityStage->syncFiles(vertexArgs, args);
+            audioShaderStages->gravityStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         if (audioShaderStages->averageStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+            FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-            audioShaderStages->averageStage->syncFiles(vertexArgs, args);
+            audioShaderStages->averageStage->syncFiles(vertexArgs, args, filesWatcherInstance);
         }
 
         audioShaderStages->applyGravityPassShader(rSize, 1, "audioR", shaderProps->shaderName);
@@ -354,31 +361,29 @@ void ShaderProgram::applyAudioTransformations()
         if (*shaderProps->audioOverrides->smoothAudio || isFirst) {
 
             if (audioShaderStages->smoothStage->shouldSyncFiles()) {
-                VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, 0, NULL, NULL, NULL, NULL);
-                FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, 0, NULL, NULL, &uniformValues, &uniformTypes);
+                VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(0, 0, NULL, NULL, NULL, NULL);
+                FragmentShaderCompilationArgs* args = new FragmentShaderCompilationArgs(0, 0, NULL, NULL, &uniformValues, &uniformTypes);
 
-                audioShaderStages->smoothStage->syncFiles(vertexArgs, args);
+                audioShaderStages->smoothStage->syncFiles(vertexArgs, args, filesWatcherInstance);
             }
             audioShaderStages->applySmoothPassShader(rSize, shaderProps->audioOverrides->smoothSettings->adjacentSampleNums, 1, "audioR", shaderProps->shaderName);
             audioShaderStages->applySmoothPassShader(lSize, shaderProps->audioOverrides->smoothSettings->adjacentSampleNums, 2, "audioR", shaderProps->shaderName);
         }
     }
-
-    glViewport(0, 0, shaderProps->windowWidth, shaderProps->windowHeight);
 }
 
 void ShaderProgram::loadAudioShaders()
 {
-
     audioShaderStages->createAudioTextures();
 
     ShaderFiles* file = &files->passShaderFile;
     while (file != NULL) {
         audioShaderStages->passStage
             ->compile(NULL, &files->passShaderFile);
-
-        for (auto i : files->passShaderFile.includedFiles) {
-            filesWatcherInstance->addDependency(i, &files->passShaderFile);
+        if (shaderProps->hotReload) {
+            for (auto i : files->passShaderFile.includedFiles) {
+                filesWatcherInstance->addDependency(i, &files->passShaderFile);
+            }
         }
         file = file->next;
     }
@@ -388,9 +393,12 @@ void ShaderProgram::loadAudioShaders()
 
         audioShaderStages->smoothStage->compile(NULL, &files->smoothShaderFile);
 
-        for (auto i : files->smoothShaderFile.includedFiles) {
-            filesWatcherInstance->addDependency(i, &files->smoothShaderFile);
+        if (shaderProps->hotReload) {
+            for (auto i : files->smoothShaderFile.includedFiles) {
+                filesWatcherInstance->addDependency(i, &files->smoothShaderFile);
+            }
         }
+
         glUseProgram(audioShaderStages->smoothStage->glProgram);
 
         int uniformLoc = audioShaderStages->smoothStage->uniformLocations["smooth_factor"];
@@ -418,9 +426,12 @@ void ShaderProgram::loadAudioShaders()
 
         audioShaderStages->gravityStage->compile(NULL, &files->gravityShaderFile);
 
-        for (auto i : files->gravityShaderFile.includedFiles) {
-            filesWatcherInstance->addDependency(i, &files->gravityShaderFile);
+        if (shaderProps->hotReload) {
+            for (auto i : files->gravityShaderFile.includedFiles) {
+                filesWatcherInstance->addDependency(i, &files->gravityShaderFile);
+            }
         }
+
         glUseProgram(audioShaderStages->gravityStage->glProgram);
 
         int uniformLoc = audioShaderStages->gravityStage->uniformLocations["diff"];
@@ -435,9 +446,12 @@ void ShaderProgram::loadAudioShaders()
 
         audioShaderStages->averageStage->compile(NULL, &files->averageShaderFile);
 
-        for (auto i : files->averageShaderFile.includedFiles) {
-            filesWatcherInstance->addDependency(i, &files->averageShaderFile);
+        if (shaderProps->hotReload) {
+            for (auto i : files->averageShaderFile.includedFiles) {
+                filesWatcherInstance->addDependency(i, &files->averageShaderFile);
+            }
         }
+
         glUseProgram(audioShaderStages->averageStage->glProgram);
         int frameLoc = audioShaderStages->averageStage->uniformLocations["avgFrames"];
         glUniform1i(frameLoc, shaderProps->audioOverrides->gravitySettings->averageFrames);
@@ -451,7 +465,6 @@ void ShaderProgram::loadAudioShaders()
 gboolean ShaderProgram::realize(GtkGLArea* area)
 {
     gtk_gl_area_make_current(GTK_GL_AREA(area));
-
     if (gtk_gl_area_get_error(GTK_GL_AREA(area)) != NULL)
         Errors::throwError("failed to initialize buffers", shaderProps->className, "For");
 
@@ -460,50 +473,54 @@ gboolean ShaderProgram::realize(GtkGLArea* area)
 
 gboolean ShaderProgram::render(GtkGLArea* area)
 {
-
     int defaultID;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultID);
 
     if (renderAudio)
         applyAudioTransformations();
 
-    if (ticks == 0)
+    if (ticks == 0) {
         initializeShaders(area);
+    }
 
     if (!shouldRender) {
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
             defaultID);
         glClear(GL_COLOR_BUFFER_BIT);
-        ticks--;
+        ticks = std::max(ticks--, 1);
         return true;
     }
+
+    glViewport(0, 0, shaderProps->windowWidth, shaderProps->windowHeight);
 
     ShaderStage* currentStage = startStage;
 
     while (currentStage->next != NULL) {
 
-        if (currentStage->shouldSyncFiles()) {
-            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 1, NULL, &currentStage->uniformLocations, NULL, NULL);
+        if (exportDMABuf)
+            currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className, (shaderProps->renderingMode != 0 && currentStage->next->next == NULL));
+        else if (currentStage->shouldSyncFiles()) {
+            VertexShaderCompilationArgs* vertexArgs = new VertexShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, NULL, &currentStage->uniformLocations, NULL, NULL);
 
-            FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 1, NULL, &currentStage->uniformLocations,
+            FragmentShaderCompilationArgs* args = currentStage != startStage ? new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, NULL, &currentStage->uniformLocations,
                                                                                    &uniformValues,
-                                                                                   &uniformTypes)
-                                                                             : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, 1, NULL,
+                                                                                   &uniformTypes, &dmaBufHandlers)
+                                                                             : new FragmentShaderCompilationArgs(shaderProps->windowWidth, shaderProps->windowHeight, NULL,
                                                                                    &currentStage->uniformLocations,
                                                                                    &uniformValues,
                                                                                    &uniformTypes,
-
+                                                                                   &dmaBufHandlers,
                                                                                    shaderProps->atomicTextures, shaderProps->imageTextures, atomicImageTexture, imageTexture);
 
-            if (currentStage->syncFiles(vertexArgs, args) && (currentStage->next->next != NULL))
-                currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className);
+            if (currentStage->syncFiles(vertexArgs, args, filesWatcherInstance) && (shaderProps->renderingMode != 0 || currentStage->next->next != NULL))
+                currentStage->fragmentShader->bind2DTextureToFrameBuffer(shaderProps->className, (shaderProps->renderingMode != 0 && currentStage->next->next == NULL));
         }
 
         glUseProgram(currentStage->glProgram);
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
-            currentStage->next->next == NULL
+            currentStage->next->next == NULL && shaderProps->renderingMode == 0
                 ? defaultID
                 : currentStage->fragmentShader->frameBufferObject);
 
@@ -532,6 +549,30 @@ gboolean ShaderProgram::render(GtkGLArea* area)
         currentStage = currentStage->next;
         glUseProgram(0);
     };
+
+    if (shaderProps->renderingMode == 2) {
+        if (finalStage == NULL) {
+            finalStage = startStage;
+            while (finalStage->next != NULL && finalStage->next->next != NULL)
+                finalStage = finalStage->next;
+        }
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, finalStage->fragmentShader->frameBufferObject);
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultID);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glBlitFramebuffer(
+            0, 0, shaderProps->windowWidth, shaderProps->windowHeight,
+            0, 0, shaderProps->windowWidth, shaderProps->windowHeight,
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, defaultID);
+    }
+
+    exportDMABuf = false;
 
     return TRUE;
 }

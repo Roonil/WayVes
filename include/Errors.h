@@ -1,15 +1,14 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#include <string>
 #include <iostream>
+#include <string>
 
-class Errors
-{
+class Errors {
 public:
     static void throwError(std::string errorMessage, std::string errorContext = "", std::string prefix = "", int tolerable = 0)
     {
-        std::cerr << "Error: ";
+        std::cerr << (tolerable == 0 ? "Error: " : "Warning: ");
 
         if (!prefix.empty())
             std::cerr << prefix;

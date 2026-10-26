@@ -10,49 +10,47 @@
 std::string getDirectoryPrefix()
 {
 
-  const char *xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
+    const char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
 
-  if (xdgConfigHome && *xdgConfigHome != '\0')
-    return std::string(xdgConfigHome) + "/WayVes/";
+    if (xdgConfigHome && *xdgConfigHome != '\0')
+        return std::string(xdgConfigHome) + "/WayVes/";
 
-  else
-  {
-    const char *home = std::getenv("HOME");
+    else {
+        const char* home = std::getenv("HOME");
 
-    if (home && *home != '\0')
-      return std::string(home) + "/.config/WayVes/";
-    else
-      Errors::throwError("HOME environment variable not set");
-  }
+        if (home && *home != '\0')
+            return std::string(home) + "/.config/WayVes/";
+        else
+            Errors::throwError("HOME environment variable not set");
+    }
 
-  return "";
+    return "";
 }
 
-int main(int argc, char *args[])
+int main(int argc, char* args[])
 {
 
-  Arguments *arguments = new Arguments(argc, args);
-  arguments->signalGApps();
+    Arguments* arguments = new Arguments(argc, args);
+    arguments->signalGApps();
 
-  char *configFileName = arguments->configFileName;
+    char* configFileName = arguments->configFileName.has_value() ? arguments->configFileName.value().data() : NULL;
 
-  std::string instance = std::string(arguments->instance == NULL ? "" : arguments->instance);
+    std::string instance = std::string(!arguments->instance.has_value() ? "" : arguments->instance.value());
 
-  if (instance.empty())
-    instance = "default";
+    if (instance.empty())
+        instance = "default";
 
-  std::string overrideFile = "";
+    std::string overrideFile = "";
 
-  while (true)
-  {
+    while (true) {
 
-    ConfigsHandler *configsHandler = new ConfigsHandler(overrideFile.empty() ? configFileName : (char *)overrideFile.c_str(), getDirectoryPrefix());
-    configsHandler->initialiseGTKApps(instance);
+        ConfigsHandler* configsHandler = new ConfigsHandler(overrideFile.empty() ? configFileName : (char*)overrideFile.c_str(), getDirectoryPrefix());
+        configsHandler->initialiseGTKApps(instance);
 
-    NamedPipeHandler *namedPipeHandler = new NamedPipeHandler(configsHandler->classNames, instance, &overrideFile);
-    namedPipeHandler->pollForPipes();
+        NamedPipeHandler* namedPipeHandler = new NamedPipeHandler(configsHandler->classNames, instance, &overrideFile);
+        namedPipeHandler->pollForPipes();
 
-    delete configsHandler;
-    delete namedPipeHandler;
-  }
+        delete configsHandler;
+        delete namedPipeHandler;
+    }
 }

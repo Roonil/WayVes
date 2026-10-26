@@ -17,7 +17,6 @@ class ShaderFiles {
 private:
     std::string LoadFile(std::string nm);
     std::size_t getIdx(std::string line, std::size_t startIdx, bool isSpace);
-
     std::string process_variable_replacement(std::string contentString, const std::map<std::string, std::string> variables, std::map<std::string, int>& vars);
     std::string process_includes(std::string content, std::string directory, std::string configName, std::map<std::string, std::string>& overridesMap, std::map<std::string, int>& vars);
     std::string process_expands(std::string content, const std::map<std::string, int>& variables, std::string errorContext);
@@ -33,7 +32,6 @@ private:
 public:
     std::string fileContent;
     std::set<std::string> includedFiles;
-
     ShaderFiles* next = NULL;
     void reloadFile();
     int index = -1;

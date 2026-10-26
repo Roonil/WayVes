@@ -1,4 +1,4 @@
-#define rgba(r, g, b, a) (vec4(float(r), float(g), float(b), float(a)) / 255.0)
+#define rgba(r, g, b, a) (vec4(vec3(float(r), float(g), float(b)) / 255.0, float(a)))
 
 #define rgb(r, g, b) (vec3(float(r), float(g), float(b)) / 255.0)
 
@@ -21,7 +21,7 @@ vec3 hsv2rgb(vec3 c)
 }
 
 #define hsv(h, s, v) (hsv2rgb(vec3(float(h) / 360., float(s) / 100., float(v) / 100.)))
-#define hsva(h, s, v, a) (vec4(hsv2rgb(vec3(float(h) / 360., float(s) / 100., float(v) / 100.)), float(a) / 100.))
+#define hsva(h, s, v, a) (vec4(hsv2rgb(vec3(float(h) / 360., float(s) / 100., float(v) / 100.)), float(a)))
 
 vec3 interpolateHue(vec3 startColor, float hueInterpolation, float bandIndex, float lastBandIndex)
 {

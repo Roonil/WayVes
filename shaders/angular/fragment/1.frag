@@ -23,12 +23,11 @@ vec4 r_gl_FragCoord = vec4(floor(r_ngl_FragCoord.xy * r_resolution.xy) + .5, r_n
 
 #define TWOPI 6.2831853071794
 #define PI 3.1415926535897
-#define RAD_PI PI / 180.
+#define RAD_PI (PI / 180.)
 
 #include ":$CONFIGFILE"
 
-vec4 topParticleColor = vec4(0), topParticleBorderColor = vec4(0),
-     topParticleCapColor = vec4(0),
+vec4 topParticleColor = vec4(0), topParticleBorderColor = vec4(0), topParticleCapColor = vec4(0),
      topParticleConnectorColor = vec4(0), topParticleConnectorBorderColor = vec4(0),
      topParticleRightConnectorColor = vec4(0), topParticleRightConnectorBorderColor = vec4(0);
 
@@ -44,8 +43,10 @@ float getAudioVal(float n, float lastN, float isLeftSide)
 
     int combineChannels = audioSettings.combineChannels;
 
-    float audioVal = clamp(isLeftSide + (combineChannels), 0, 1) * texture(audioL, mix(1. - audioX, audioX, audioSettings.reverseLeft)).x;
-    audioVal += clamp(1 - isLeftSide + (combineChannels), 0, 1) * texture(audioR, mix(1. - audioX, audioX, audioSettings.reverseRight)).x;
+    float audioVal = clamp(isLeftSide + (combineChannels), 0, 1) *
+                     texture(audioL, mix(1. - audioX, audioX, audioSettings.reverseLeft)).x;
+    audioVal += clamp(1 - isLeftSide + (combineChannels), 0, 1) *
+                texture(audioR, mix(1. - audioX, audioX, audioSettings.reverseRight)).x;
     audioVal /= 1. + (combineChannels);
 
     audioFetch(audioVal, n, lastN);
@@ -87,7 +88,8 @@ float halfConnectorSDF(vec2 pos, vec2 firstCenter, vec2 secondCenter)
 int connectorSDF(int particleDirectionSelector)
 {
     vec2 pos = particle.fragment.vectorFromCenter;
-    float isFirst = step(float(particle.fragment.n), 0.), isLast = step(float(particle.fragment.lastN), float(particle.fragment.n));
+    float isFirst = step(float(particle.fragment.n), 0.),
+          isLast = step(float(particle.fragment.lastN), float(particle.fragment.n));
 
     float outerVal = halfConnectorSDF(pos, particle.connector.currentCenter, particle.connector.leftCenter);
 
@@ -119,8 +121,10 @@ int connectorSDF(int particleDirectionSelector)
 
     float val = col1 + col2;
 
-    int leftOuterSelector = int(mix(PARTICLE_UP_LEFT_CONNECTOR_OUTER_SDF, PARTICLE_DOWN_LEFT_CONNECTOR_OUTER_SDF, particleDirectionSelector));
-    int rightOuterSelector = int(mix(PARTICLE_UP_RIGHT_CONNECTOR_OUTER_SDF, PARTICLE_DOWN_RIGHT_CONNECTOR_OUTER_SDF, particleDirectionSelector));
+    int leftOuterSelector = int(
+        mix(PARTICLE_UP_LEFT_CONNECTOR_OUTER_SDF, PARTICLE_DOWN_LEFT_CONNECTOR_OUTER_SDF, particleDirectionSelector));
+    int rightOuterSelector = int(
+        mix(PARTICLE_UP_RIGHT_CONNECTOR_OUTER_SDF, PARTICLE_DOWN_RIGHT_CONNECTOR_OUTER_SDF, particleDirectionSelector));
 
     int cutOff = int(step(particle.fragment.n, particle.fragment.lastN));
     sdfs[leftOuterSelector] = cutOff * col1;
@@ -144,8 +148,10 @@ int connectorSDF(int particleDirectionSelector)
     col2 = mix(mix(col2, 0, isFirst), col2, particle.connector.loop);
     col1 = mix(mix(col1, 0, isLast), col1, particle.connector.loop);
 
-    int leftInnerSelector = int(mix(PARTICLE_UP_LEFT_CONNECTOR_INNER_SDF, PARTICLE_DOWN_LEFT_CONNECTOR_INNER_SDF, particleDirectionSelector));
-    int rightInnerSelector = int(mix(PARTICLE_UP_RIGHT_CONNECTOR_INNER_SDF, PARTICLE_DOWN_RIGHT_CONNECTOR_INNER_SDF, particleDirectionSelector));
+    int leftInnerSelector = int(
+        mix(PARTICLE_UP_LEFT_CONNECTOR_INNER_SDF, PARTICLE_DOWN_LEFT_CONNECTOR_INNER_SDF, particleDirectionSelector));
+    int rightInnerSelector = int(
+        mix(PARTICLE_UP_RIGHT_CONNECTOR_INNER_SDF, PARTICLE_DOWN_RIGHT_CONNECTOR_INNER_SDF, particleDirectionSelector));
 
     sdfs[leftInnerSelector] = cutOff * (col1);
     sdfs[rightInnerSelector] = cutOff * (col2);
@@ -171,8 +177,11 @@ int connectorSDF(int particleDirectionSelector)
 
     float innerRightJMSelector = innerRightJointSelector * mix(innerSJM2Connector, innerSJM1Connector, jM1);
     float innerLeftJMSelector = (1. - innerRightJointSelector) * mix(innerSJM2Connector, innerSJM1Connector, jM1);
-    float outerRightJMSelector = mix(max(outerRightJointSelector * outerSJM2Connector - innerSJM2Connector, 0), max(outerRightJointSelector * outerSJM1Connector - innerSJM1Connector, 0), jM1);
-    float outerLeftJMSelector = mix(max((1. - outerRightJointSelector) * outerSJM2Connector - innerSJM2Connector, 0), max((1. - outerRightJointSelector) * outerSJM1Connector - innerSJM1Connector, 0), jM1);
+    float outerRightJMSelector = mix(max(outerRightJointSelector * outerSJM2Connector - innerSJM2Connector, 0),
+                                     max(outerRightJointSelector * outerSJM1Connector - innerSJM1Connector, 0), jM1);
+    float outerLeftJMSelector =
+        mix(max((1. - outerRightJointSelector) * outerSJM2Connector - innerSJM2Connector, 0),
+            max((1. - outerRightJointSelector) * outerSJM1Connector - innerSJM1Connector, 0), jM1);
 
     sdfs[rightInnerSelector] = mix(innerRightJMSelector, sdfs[rightInnerSelector], jM0);
     sdfs[leftInnerSelector] = mix(innerLeftJMSelector, sdfs[leftInnerSelector], jM0);
@@ -206,40 +215,44 @@ float capSDF(float mode, float direction, float dist, float barSpan, float audio
 
     dR += accelSelector * cap.acceleration;
 
-    dR = mix(dR, -eDR * (1. - step(abs(dR), cap.elasticityMinThreshold)), (1. - accelSelector) * (1. - step(eDR, valSelector)));
+    dR = mix(dR, -eDR * (1. - step(abs(dR), cap.elasticityMinThreshold)),
+             (1. - accelSelector) * (1. - step(eDR, valSelector)));
     dR = mix(dR, min(0, dR + cap.rate), 1 - step(0, dR));
-    dR = mix(dR, -(cap.launchVelocity + cap.launchFlingMultiplier * mix(capVal - oldCapVal, oldCapVal - capVal, direction)), (1 - mix(step(capVal, oldCapVal + cap.rate), step(oldCapVal, capVal + cap.rate), direction)));
+    dR = mix(dR,
+             -(cap.launchVelocity + cap.launchFlingMultiplier * mix(capVal - oldCapVal, oldCapVal - capVal, direction)),
+             (1 - mix(step(capVal, oldCapVal + cap.rate), step(oldCapVal, capVal + cap.rate), direction)));
 
     dR *= 1. - cap.dragFactor;
 
     capVal = mix(max(capVal, oldCapVal - (dR) - (1. - cap.dragFactor) * cap.rate),
-        min(capVal, oldCapVal + (dR) + (1. - cap.dragFactor) * cap.rate),
-        direction);
+                 min(capVal, oldCapVal + (dR) + (1. - cap.dragFactor) * cap.rate), direction);
 
-    vec2 newData = vec2(capVal, dR);
+    vec2 newData = vec2(capVal, mix(dR, cap.acceleration, step(time, 0.0)));
 
     imageStore(imageTexture0, imageCoords,
 
-        mix(mix(vec4(newData, img0Data.zw), vec4(img0Data.xy, newData), direction),
-            img0Data,
-            mode * (1 - step((visualiserMode), 1)))
+               mix(mix(vec4(newData, img0Data.zw), vec4(img0Data.xy, newData), direction), img0Data,
+                   mode * (1 - step((visualiserMode), 1)))
 
     );
 
     imageStore(imageTexture1, imageCoords,
 
-        mix(mix(vec4(newData, img1Data.zw), vec4(img1Data.xy, newData), direction),
-            img1Data,
-            1. - mode * (1 - step((visualiserMode), 1)))
+               mix(mix(vec4(newData, img1Data.zw), vec4(img1Data.xy, newData), direction), img1Data,
+                   1. - mode * (1 - step((visualiserMode), 1)))
 
     );
 
-    float height = applySoftness(cap.softness.x, cap.size.y / 2., dist - capVal + directionSelector * (cap.offset.y + yOffset + cap.size.y / 2.));
-    height *= applySoftness(cap.softness.z, cap.size.y / 2., -(dist - capVal + directionSelector * (cap.offset.y + yOffset + cap.size.y / 2.)));
+    float height = applySoftness(cap.softness.x, cap.size.y / 2.,
+                                 dist - capVal + directionSelector * (cap.offset.y + yOffset + cap.size.y / 2.));
+    height *= applySoftness(cap.softness.z, cap.size.y / 2.,
+                            -(dist - capVal + directionSelector * (cap.offset.y + yOffset + cap.size.y / 2.)));
 
     float currentHalfAL = (barSpan - cap.offset.x) * bar.fragment.distanceFromCenter;
 
-    float width = applySoftness(cap.softness.y * mix(1., float(circle.radius), cap.type), cap.size.x / 2., mix(abs(barSpan - cap.offset.x), abs(currentHalfAL) - cap.size.x / 2. * circle.radius, cap.type));
+    float width =
+        applySoftness(cap.softness.y * mix(1., float(circle.radius), cap.type), cap.size.x / 2.,
+                      mix(abs(barSpan - cap.offset.x), abs(currentHalfAL) - cap.size.x / 2. * circle.radius, cap.type));
 
     return width * height;
 }
@@ -271,12 +284,23 @@ int roundedBarsSDF(vec2 currentCenter, vec2 barBottomCoords, vec2 barOffset)
 
     col1 -= col2;
 
-    float cutOff = step(float(bar.fragment.n), float(bar.fragment.lastN));
-    sdfs[BAR_BG_SDF] = cutOff;
+    float cutOff = step(0., float(bar.fragment.n)) * step(float(bar.fragment.n), float(bar.fragment.lastN));
+    sdfs[BAR_BG_SDF] = cutOff * (1 - step((visualiserMode), 0));
 
-    sdfs[BAR_UP_CAP_SDF] = cutOff * (bar.upCap.enable ? capSDF(1, 0, bar.fragment.distanceFromCenter - circle.radius - bar.size.y - 2 * bar.borderSize.y - barOffset.y, bar.fragment.span - barOffset.x, bar.upCap.audio.y, bar.size.x, bar.upCap) : 0);
+    sdfs[BAR_UP_CAP_SDF] =
+        cutOff * (bar.upCap.enable ? capSDF(1, 0,
+                                            bar.fragment.distanceFromCenter - circle.radius - bar.size.y -
+                                                2 * bar.borderSize.y - barOffset.y,
+                                            bar.fragment.span - barOffset.x, bar.upCap.audio.y, bar.size.x, bar.upCap)
+                                   : 0);
 
-    sdfs[BAR_DOWN_CAP_SDF] = cutOff * (bar.downCap.enable ? capSDF(1, 1, bar.fragment.distanceFromCenter - circle.radius - circle.borderSize + bar.size.y + 2 * bar.borderSize.y - barOffset.y, bar.fragment.span - barOffset.x, bar.downCap.audio.x, bar.downCap.offset.y + bar.size.z, bar.downCap) : 0);
+    sdfs[BAR_DOWN_CAP_SDF] =
+        cutOff * (bar.downCap.enable ? capSDF(1, 1,
+                                              bar.fragment.distanceFromCenter - circle.radius - circle.borderSize +
+                                                  bar.size.y + 2 * bar.borderSize.y - barOffset.y,
+                                              bar.fragment.span - barOffset.x, bar.downCap.audio.x,
+                                              bar.downCap.offset.y + bar.size.z, bar.downCap)
+                                     : 0);
 
     sdfs[BAR_INNER_SDF] = cutOff * col2;
     sdfs[BAR_OUTER_SDF] = cutOff * col1;
@@ -290,7 +314,9 @@ int barSDF(vec2 prevOffset, vec2 currentOffset, vec2 nextOffset, vec2 pBS, vec2 
     float angleSpan = bar.fragment.span - currentOffset.x;
     float vD = bar.fragment.distanceFromCenter;
 
-    float clampLeftBarSide = mix(1., 1. - step(float(bar.fragment.lastN), float(bar.fragment.n)), float(bar.clampLeftMergeBorder)), clampRightBarSide = mix(1., 1. - step(float(bar.fragment.n), 0.), float(bar.clampRightMergeBorder));
+    float clampLeftBarSide =
+              mix(1., 1. - step(float(bar.fragment.lastN), float(bar.fragment.n)), float(bar.clampLeftMergeBorder)),
+          clampRightBarSide = mix(1., 1. - step(float(bar.fragment.n), 0.), float(bar.clampRightMergeBorder));
 
     float H = currentOffset.y + circle.radius + circle.borderSize + bar.size.x + bar.audio.current.y;
     float pH = prevOffset.y + circle.radius + circle.borderSize + bar.audio.prev.y + pBS.x;
@@ -305,22 +331,22 @@ int barSDF(vec2 prevOffset, vec2 currentOffset, vec2 nextOffset, vec2 pBS, vec2 
     vec3 innerSoftness = bar.innerSoftness;
     vec3 outerSoftness = bar.outerSoftness;
 
-    float cutOff = step(float(bar.fragment.n), float(bar.fragment.lastN));
-    sdfs[BAR_BG_SDF] = cutOff;
-
-    // angleSpan = max(angleSpan, -fragmentAngle / 2.);
+    float cutOff = step(0., float(bar.fragment.n)) * step(float(bar.fragment.n), float(bar.fragment.lastN));
+    sdfs[BAR_BG_SDF] = cutOff * (1 - step((visualiserMode), 0));
 
     float currentHalfAL = angleSpan * bar.fragment.distanceFromCenter;
 
-    float smoothAngleSpan = cutOff
-        * (mix(applySoftness(innerSoftness.y, float(barAngle) / 2., abs(angleSpan)),
-            applySoftness(circle.radius * innerSoftness.y, circle.radius * innerSoftness.y, abs(currentHalfAL) - ((barAngle) / 2.) * circle.radius), bar.type));
+    float smoothAngleSpan =
+        cutOff * (mix(applySoftness(innerSoftness.y, float(barAngle) / 2., abs(angleSpan)),
+                      applySoftness(circle.radius * innerSoftness.y, circle.radius * innerSoftness.y,
+                                    abs(currentHalfAL) - ((barAngle) / 2.) * circle.radius),
+                      bar.type));
 
-    float smoothBorderSpan = cutOff
-        * (mix(
-            applySoftness(outerSoftness.y, float(barAngle) / 2. + bar.borderSize.y, abs(angleSpan)),
-            applySoftness(circle.radius * outerSoftness.y, circle.radius * outerSoftness.y, abs(currentHalfAL) - ((barAngle) / 2. + bar.borderSize.y) * circle.radius),
-            bar.type));
+    float smoothBorderSpan =
+        cutOff * (mix(applySoftness(outerSoftness.y, float(barAngle) / 2. + bar.borderSize.y, abs(angleSpan)),
+                      applySoftness(circle.radius * outerSoftness.y, circle.radius * outerSoftness.y,
+                                    abs(currentHalfAL) - ((barAngle) / 2. + bar.borderSize.y) * circle.radius),
+                      bar.type));
 
     smoothBorderSpan = max(smoothBorderSpan, smoothAngleSpan);
     smoothBorderSpan -= smoothAngleSpan;
@@ -329,42 +355,36 @@ int barSDF(vec2 prevOffset, vec2 currentOffset, vec2 nextOffset, vec2 pBS, vec2 
 
     smoothBorderHeight *= applySoftness(outerSoftness.z, h2 + outerSoftness.z, outerSoftness.z - vD + circle.radius);
 
-    float prevSmoothBorderHeight = (applySoftness(outerSoftness.x, pH, vD));
+    float prevSmoothBorderHeight = (bar.mergeRightBar * applySoftness(outerSoftness.x, pH, vD));
 
-    prevSmoothBorderHeight *= applySoftness(outerSoftness.z, nH2 + outerSoftness.z, outerSoftness.z - vD + circle.radius);
+    prevSmoothBorderHeight *=
+        applySoftness(outerSoftness.z, nH2 + outerSoftness.z, outerSoftness.z - vD + circle.radius);
 
-    float nextSmoothBorderHeight = (applySoftness(outerSoftness.x, nH, vD));
+    float nextSmoothBorderHeight = bar.mergeLeftBar * (applySoftness(outerSoftness.x, nH, vD));
 
-    nextSmoothBorderHeight *= applySoftness(outerSoftness.z, pH2 + outerSoftness.z, outerSoftness.z - vD + circle.radius);
+    nextSmoothBorderHeight *=
+        applySoftness(outerSoftness.z, pH2 + outerSoftness.z, outerSoftness.z - vD + circle.radius);
 
     float nextBarSpan = 1. - step(angleSpan, 0);
-
-    vec4 bC = bar.color;
-    bC.xyz *= bC.w;
-
-    vec4 rBC = bar.borderColor;
-    rBC.xyz *= rBC.w;
-
-    vec4 cFC = circle.color;
-    cFC.xyz *= cFC.w;
-
-    vec4 cBC = circle.borderColor;
-    cBC.xyz *= cBC.w;
 
     vD -= bar.borderSize.z;
 
     float smoothBarHeight = (applySoftness(innerSoftness.x, H - bar.borderSize.x - bar.borderSize.z, vD));
 
-    smoothBarHeight *= applySoftness(bar.innerSoftness.z, h2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
+    smoothBarHeight *=
+        applySoftness(bar.innerSoftness.z, h2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
 
-    float prevSmoothBarHeight
-        = (applySoftness(innerSoftness.x, pH - bar.borderSize.x - bar.borderSize.z, vD));
+    float prevSmoothBarHeight =
+        bar.mergeRightBar * (applySoftness(innerSoftness.x, pH - bar.borderSize.x - bar.borderSize.z, vD));
 
-    prevSmoothBarHeight *= applySoftness(bar.innerSoftness.z, nH2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
+    prevSmoothBarHeight *=
+        applySoftness(bar.innerSoftness.z, nH2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
 
-    float nextSmoothBarHeight = (applySoftness(innerSoftness.x, nH - bar.borderSize.x - bar.borderSize.z, vD));
+    float nextSmoothBarHeight =
+        bar.mergeLeftBar * (applySoftness(innerSoftness.x, nH - bar.borderSize.x - bar.borderSize.z, vD));
 
-    nextSmoothBarHeight *= applySoftness(bar.innerSoftness.z, pH2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
+    nextSmoothBarHeight *=
+        applySoftness(bar.innerSoftness.z, pH2 + bar.innerSoftness.z, bar.innerSoftness.z - vD + circle.radius);
 
     smoothBorderHeight = max(smoothBorderHeight, smoothBarHeight);
     smoothBorderHeight -= smoothBarHeight;
@@ -382,22 +402,35 @@ int barSDF(vec2 prevOffset, vec2 currentOffset, vec2 nextOffset, vec2 pBS, vec2 
     nextSmoothBorderHeight *= clampLeftBarSide;
 
     int mergeBars = sign(bar.mergeLeftBar + bar.mergeRightBar);
-    float innerBar = cutOff
-        * (smoothBarHeight * smoothAngleSpan
-            + (mergeBars
-                * (1 - smoothAngleSpan)
-                * mix(min(prevSmoothBarHeight, smoothBarHeight), min(nextSmoothBarHeight, smoothBarHeight), nextBarSpan)));
+    float innerBar =
+        cutOff * (smoothBarHeight * smoothAngleSpan + (mergeBars * (1 - smoothAngleSpan) *
+                                                       mix(min(prevSmoothBarHeight, smoothBarHeight),
+                                                           min(nextSmoothBarHeight, smoothBarHeight), nextBarSpan)));
 
-    float outerBar = cutOff
-        * (smoothBorderHeight * (smoothAngleSpan + smoothBorderSpan)
-            + mix(smoothBorderSpan * smoothBarHeight, ((smoothBorderSpan)*max(0, smoothBarHeight - mix(prevSmoothBarHeight, nextSmoothBarHeight, nextBarSpan))
+    float outerBar =
+        cutOff *
+        (smoothBorderHeight * (smoothAngleSpan + smoothBorderSpan) +
+         mix(smoothBorderSpan * smoothBarHeight,
+             ((smoothBorderSpan)*max(0, smoothBarHeight - mix(prevSmoothBarHeight, nextSmoothBarHeight, nextBarSpan))
 
-                                                          + (1 - smoothAngleSpan - smoothBorderSpan) * (mix(min(smoothBarHeight + smoothBorderHeight, prevSmoothBorderHeight + prevSmoothBarHeight) - min(smoothBarHeight, prevSmoothBarHeight), min(smoothBarHeight + smoothBorderHeight, nextSmoothBorderHeight + nextSmoothBarHeight) - min(smoothBarHeight, nextSmoothBarHeight), nextBarSpan))),
-                mergeBars));
+              + (1 - smoothAngleSpan - smoothBorderSpan) *
+                    (mix(min(smoothBarHeight + smoothBorderHeight, prevSmoothBorderHeight + prevSmoothBarHeight) -
+                             min(smoothBarHeight, prevSmoothBarHeight),
+                         min(smoothBarHeight + smoothBorderHeight, nextSmoothBorderHeight + nextSmoothBarHeight) -
+                             min(smoothBarHeight, nextSmoothBarHeight),
+                         nextBarSpan))),
+             mergeBars));
 
-    float upCapVal = cutOff * (bar.upCap.enable ? capSDF(1, 0, bar.fragment.distanceFromCenter - circle.radius, angleSpan, bar.upCap.audio.y, bar.size.x + currentOffset.y, bar.upCap) : 0);
+    float upCapVal =
+        cutOff * (bar.upCap.enable ? capSDF(1, 0, bar.fragment.distanceFromCenter - circle.radius, angleSpan,
+                                            bar.upCap.audio.y, bar.size.x + currentOffset.y, bar.upCap)
+                                   : 0);
 
-    float downCapVal = cutOff * (bar.downCap.enable ? capSDF(1, 1, bar.fragment.distanceFromCenter - circle.radius, angleSpan, bar.downCap.audio.x, bar.downCap.offset.y + bar.size.z - currentOffset.y, bar.downCap) : 0);
+    float downCapVal =
+        cutOff * (bar.downCap.enable
+                      ? capSDF(1, 1, bar.fragment.distanceFromCenter - circle.radius, angleSpan, bar.downCap.audio.x,
+                               bar.downCap.offset.y + bar.size.z - currentOffset.y, bar.downCap)
+                      : 0);
 
     sdfs[BAR_INNER_SDF] = innerBar;
     sdfs[BAR_OUTER_SDF] = outerBar;
@@ -435,10 +468,14 @@ int particleSDF(int particleDirectionSelector)
 
     vec4 bC = vec4(particle.borderColor.xyz * particle.borderColor.w, particle.borderColor.w);
     vec4 iC = vec4(particle.color.xyz * particle.color.w, particle.color.w);
-    vec4 cC = vec4(particle.connector.left.color.xyz * particle.connector.left.color.w, particle.connector.left.color.w);
-    vec4 cBC = vec4(particle.connector.left.borderColor.xyz * particle.connector.left.borderColor.w, particle.connector.left.borderColor.w);
-    vec4 cBRC = vec4(particle.connector.right.borderColor.xyz * particle.connector.right.borderColor.w, particle.connector.right.borderColor.w);
-    vec4 cRC = vec4(particle.connector.right.color.xyz * particle.connector.right.color.w, particle.connector.right.color.w);
+    vec4 cC =
+        vec4(particle.connector.left.color.xyz * particle.connector.left.color.w, particle.connector.left.color.w);
+    vec4 cBC = vec4(particle.connector.left.borderColor.xyz * particle.connector.left.borderColor.w,
+                    particle.connector.left.borderColor.w);
+    vec4 cBRC = vec4(particle.connector.right.borderColor.xyz * particle.connector.right.borderColor.w,
+                     particle.connector.right.borderColor.w);
+    vec4 cRC =
+        vec4(particle.connector.right.color.xyz * particle.connector.right.color.w, particle.connector.right.color.w);
 
     topParticleBorderColor = mix(bC, topParticleBorderColor, particleDirectionSelector);
     topParticleColor = mix(iC, topParticleColor, particleDirectionSelector);
@@ -455,6 +492,12 @@ int particleSDF(int particleDirectionSelector)
 float getNthCenter(int n)
 {
     return (2. * n + 1.) * ((fragmentAngle) / 2.);
+}
+
+vec2 getConnectorCenter(float angle, vec2 offset, float mirror)
+{
+    float angleRads = (angle + offset.x) * RAD_PI;
+    return (circle.radius + mirror * offset.y) * vec2(cos(angleRads), sin(angleRads));
 }
 
 void defaultAudioSettingsValues(inout AudioSettings audio)
@@ -549,6 +592,9 @@ void defaultCircleValues()
     circle.borderColor = vec4(0);
     circle.radius = 0;
 
+    circle.startAnglePadding = 0;
+    circle.endAnglePadding = 0;
+
     circle.angleOffset = 0;
     circle.maxAngle = 360;
     circle.restrictCircleAngle = 1;
@@ -586,17 +632,44 @@ void defaultBarValues()
     defaultCapValues(bar.downCap);
 }
 
-int particleDownProps(vec2 prevNorm, vec2 currentNorm, vec2 nextNorm, float actualCurrentCenterAngle, float prevN, float nextN, float cutOff)
+int particleDownProps(vec2 currentNorm, int actualN, int actualNForBar, float actualCurrentCenterAngle, float prevN,
+                      float nextN, float cutOff)
 {
     vec2 currentParticleOffset = vec2(0), prevParticleOffset = vec2(0), nextParticleOffset = vec2(0);
     vec2 currentBarOffset = vec2(0), prevBarOffset = vec2(0), nextBarOffset = vec2(0);
     vec2 prevBarSizeOffset = vec2(0), currentBarSizeOffset = vec2(0), nextBarSizeOffset = vec2(0);
 
-    setOffsets(1., prevParticleOffset, prevBarOffset, prevBarSizeOffset, bar.audio.prev, particle.audio.prev, particle.connector.rightCenter.x, prevN, particle.fragment.lastN);
-    setOffsets(1., currentParticleOffset, currentBarOffset, currentBarSizeOffset, bar.audio.current, particle.audio.current, particle.connector.currentCenter.x, particle.fragment.n, particle.fragment.lastN);
-    setOffsets(1., nextParticleOffset, nextBarOffset, nextBarSizeOffset, bar.audio.next, particle.audio.next, particle.connector.leftCenter.x, nextN, particle.fragment.lastN);
+    float prevAngle = particle.connector.right.enable * getNthCenter(int(prevN));
+    float currentAngle = actualCurrentCenterAngle / RAD_PI;
+    float nextAngle = particle.connector.left.enable * getNthCenter(int(nextN));
+    float earlyMirror = 1. - particle.reverseBottomOffset * 2.;
+
+    particle.connector.rightCenter = getConnectorCenter(prevAngle, vec2(0), earlyMirror);
+    particle.connector.currentCenter = getConnectorCenter(currentAngle, vec2(0), earlyMirror);
+    particle.connector.leftCenter = getConnectorCenter(nextAngle, vec2(0), earlyMirror);
+
+    setOffsets(1., prevParticleOffset, prevBarOffset, prevBarSizeOffset, bar.audio.prev, particle.audio.prev,
+               getNthCenter(int(prevN)), prevN, particle.fragment.lastN);
+    setOffsets(1., currentParticleOffset, currentBarOffset, currentBarSizeOffset, bar.audio.current,
+               particle.audio.current, currentAngle, particle.fragment.n, particle.fragment.lastN);
+    setOffsets(1., nextParticleOffset, nextBarOffset, nextBarSizeOffset, bar.audio.next, particle.audio.next,
+               getNthCenter(int(nextN)), nextN, particle.fragment.lastN);
+
+    particle.connector.rightCenter = getConnectorCenter(prevAngle, prevParticleOffset, earlyMirror);
+    particle.connector.currentCenter = getConnectorCenter(currentAngle, currentParticleOffset, earlyMirror);
+    particle.connector.leftCenter = getConnectorCenter(nextAngle, nextParticleOffset, earlyMirror);
+
+    float nCopyForBar = bar.fragment.n;
+    float nCopyForParticle = particle.fragment.n;
+
+    bar.fragment.n = actualNForBar;
+    particle.fragment.n = actualN;
 
     setParticleDownProps();
+
+    bar.fragment.n = nCopyForBar;
+    particle.fragment.n = nCopyForParticle;
+
     currentParticleOffset += particle.offset;
     nextParticleOffset += particle.offset;
     prevParticleOffset += particle.offset;
@@ -611,16 +684,26 @@ int particleDownProps(vec2 prevNorm, vec2 currentNorm, vec2 nextNorm, float actu
     nextParticleOffset.y -= pICD2;
     prevParticleOffset.y -= pICD2;
 
-    currentNorm = vec2(cos(actualCurrentCenterAngle + currentParticleOffset.x), sin(actualCurrentCenterAngle + currentParticleOffset.x));
+    currentNorm = vec2(cos(actualCurrentCenterAngle + currentParticleOffset.x),
+                       sin(actualCurrentCenterAngle + currentParticleOffset.x));
 
-    particle.connector.currentCenter = ((circle.radius - particle.audio.current.x + mirror * currentParticleOffset.y)) * currentNorm;
+    float prevCenterAngle = (prevAngle + prevParticleOffset.x) * RAD_PI;
+    float nextCenterAngle = (nextAngle + nextParticleOffset.x) * RAD_PI;
+    vec2 prevNorm = vec2(cos(prevCenterAngle), sin(prevCenterAngle));
+    vec2 nextNorm = vec2(cos(nextCenterAngle), sin(nextCenterAngle));
+
+    particle.connector.currentCenter =
+        ((circle.radius - particle.audio.current.x + mirror * currentParticleOffset.y)) * currentNorm;
     particle.connector.rightCenter = (circle.radius - particle.audio.prev.x + mirror * prevParticleOffset.y) * prevNorm;
     particle.connector.leftCenter = (circle.radius - particle.audio.next.x + mirror * nextParticleOffset.y) * nextNorm;
 
-    particle.connector.currentCenter.x += currentParticleOffset.x;
-
     int pC2 = particleSDF(1);
-    float downCapVal = (particle.cap.enable ? capSDF(0, 1, particle.fragment.distanceFromCenter - circle.radius + particle.radius + particle.borderSize - mirror * currentParticleOffset.y, particle.fragment.span - currentOffsetX, particle.cap.audio.x, 0, particle.cap) : 0);
+    float downCapVal =
+        (particle.cap.enable ? capSDF(0, 1,
+                                      particle.fragment.distanceFromCenter - circle.radius + particle.radius +
+                                          particle.borderSize - mirror * currentParticleOffset.y,
+                                      particle.fragment.span - currentOffsetX, particle.cap.audio.x, 0, particle.cap)
+                             : 0);
 
     sdfs[PARTICLE_DOWN_CAP_SDF] = cutOff * downCapVal;
 
@@ -647,10 +730,14 @@ vec4 getAllColors()
     colors[13] = vec4(topParticleCapColor);
     colors[14] = vec4(particle.color.xyz * particle.color.w, particle.color.w);
     colors[15] = vec4(particle.borderColor.xyz * particle.borderColor.w, particle.borderColor.w);
-    colors[16] = vec4(particle.connector.left.color.xyz * particle.connector.left.color.w, particle.connector.left.color.w);
-    colors[17] = vec4(particle.connector.right.color.xyz * particle.connector.right.color.w, particle.connector.right.color.w);
-    colors[18] = vec4(particle.connector.left.borderColor.xyz * particle.connector.left.borderColor.w, particle.connector.left.borderColor.w);
-    colors[19] = vec4(particle.connector.right.borderColor.xyz * particle.connector.right.borderColor.w, particle.connector.right.borderColor.w);
+    colors[16] =
+        vec4(particle.connector.left.color.xyz * particle.connector.left.color.w, particle.connector.left.color.w);
+    colors[17] =
+        vec4(particle.connector.right.color.xyz * particle.connector.right.color.w, particle.connector.right.color.w);
+    colors[18] = vec4(particle.connector.left.borderColor.xyz * particle.connector.left.borderColor.w,
+                      particle.connector.left.borderColor.w);
+    colors[19] = vec4(particle.connector.right.borderColor.xyz * particle.connector.right.borderColor.w,
+                      particle.connector.right.borderColor.w);
     colors[20] = vec4(particle.cap.color.xyz * particle.cap.color.w, particle.cap.color.w);
 
     vec4 color = colors[zOrder[0]] * sdfs[zOrder[0]];
@@ -674,19 +761,35 @@ void main()
 
     FragColor = vec4(0);
     vec2 vecFromCenter = r_gl_FragCoord.xy - circle.center;
+
+    float particleLoopSelector = step(particle.connector.loop, 0);
+
+    circle.angleOffset += (1 - particleLoopSelector) * (circle.startAnglePadding);
+
     float angle = (circle.angleOffset) * RAD_PI;
+
     float angleSin = sin(angle), angleCos = cos(angle);
     vecFromCenter = mat2(vec2(angleSin, angleCos), vec2(-angleCos, angleSin)) * vecFromCenter;
     float currentAngle = atan(vecFromCenter.y, vecFromCenter.x) / PI;
     currentAngle += 1.;
     currentAngle *= 180.;
+    currentAngle = mod(currentAngle, 360.);
 
-    int n = int(currentAngle / (fragmentAngle));
+    currentAngle -= particleLoopSelector * (circle.startAnglePadding);
+
+    circle.maxAngle = circle.maxAngle - (circle.startAnglePadding) - (circle.endAnglePadding);
+
+    int n = int(floor(currentAngle / (fragmentAngle)));
     int lastN = int(round((circle.maxAngle) / (fragmentAngle))) - 1;
     lastN = max(1, lastN);
+    int actualNForBar = n;
 
-    int actualN = n;
-    n = min(n, lastN);
+    int actualN = 0;
+
+    actualN = int(mix(min(n, lastN), n, particle.connector.loop));
+
+    n = clamp(n, 0, lastN);
+
     float currentCenterAngle = getNthCenter(n);
     float dist = length(vecFromCenter);
 
@@ -695,22 +798,23 @@ void main()
     bar.fragment = fragment;
     bar.fragment.span = currentAngle - currentCenterAngle;
     bar.fragment.span = max(bar.fragment.span, -(fragmentAngle) / 2.);
-    currentAngle *= RAD_PI;
 
     bar.fragment.coords = r_gl_FragCoord.xy;
     bar.fragment.currentAngle = currentAngle;
     bar.fragment.distanceFromCenter = dist;
     bar.fragment.currentCenterAngle = currentCenterAngle;
-    bar.fragment.n = n;
+    bar.fragment.n = actualNForBar;
     bar.fragment.lastN = lastN;
 
     particle.fragment = fragment;
 
     particle.fragment.currentAngle = currentAngle;
     particle.fragment.distanceFromCenter = dist;
-    particle.fragment.n = n;
+    particle.fragment.n = actualN;
     particle.fragment.lastN = lastN;
     particle.fragment.span = bar.fragment.span;
+
+    currentAngle *= RAD_PI;
 
     vecFromCenter = dist * vec2(cos(currentAngle), sin(currentAngle));
     particle.fragment.vectorFromCenter = vecFromCenter;
@@ -735,13 +839,31 @@ void main()
     float particleSelector = step(2, float(visualiserMode)) + step(float(visualiserMode), 0);
     float barSelector = step(1, float(visualiserMode));
 
-    float currentAudioVal = topDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - n), lastN / (1. + mode), isLeftSide * mode));
-    float prevAudioVal = sign(bar.mergeRightBar + particle.connector.right.enable) * (topDirectionSelector * getAudioVal(abs((mode)*lastN / 2 - prevN), lastN / (1. + mode), isPrevLeftSide * mode));
-    float nextAudioVal = sign(bar.mergeLeftBar + particle.connector.left.enable) * (topDirectionSelector * getAudioVal(abs((mode)*lastN / 2 - nextN), lastN / (1. + mode), isNextLeftSide * mode));
+    float nCopyForBar = bar.fragment.n;
+    float nCopyForParticle = particle.fragment.n;
+    bar.fragment.n = actualNForBar;
+    particle.fragment.n = actualN;
 
-    float currentAudioLVal = bottomDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - n), lastN / (1. + mode), isLeftSide + (1 - mode) * (1 - isLeftSide)));
-    float prevAudioLVal = sign(bar.mergeRightBar + particle.connector.right.enable) * bottomDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - prevN), lastN / (1. + mode), isPrevLeftSide + (1 - mode) * (1 - isPrevLeftSide)));
-    float nextAudioLVal = sign(bar.mergeLeftBar + particle.connector.left.enable) * bottomDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - nextN), lastN / (1. + mode), isNextLeftSide + (1 - mode) * (1 - isNextLeftSide)));
+    float currentAudioVal =
+        topDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - n), lastN / (1. + mode), isLeftSide * mode));
+    float prevAudioVal =
+        sign(bar.mergeRightBar + particle.connector.right.enable) *
+        (topDirectionSelector * getAudioVal(abs((mode)*lastN / 2 - prevN), lastN / (1. + mode), isPrevLeftSide * mode));
+    float nextAudioVal =
+        sign(bar.mergeLeftBar + particle.connector.left.enable) *
+        (topDirectionSelector * getAudioVal(abs((mode)*lastN / 2 - nextN), lastN / (1. + mode), isNextLeftSide * mode));
+
+    float currentAudioLVal = bottomDirectionSelector * (getAudioVal(abs((mode)*lastN / 2 - n), lastN / (1. + mode),
+                                                                    isLeftSide + (1 - mode) * (1 - isLeftSide)));
+    float prevAudioLVal = sign(bar.mergeRightBar + particle.connector.right.enable) * bottomDirectionSelector *
+                          (getAudioVal(abs((mode)*lastN / 2 - prevN), lastN / (1. + mode),
+                                       isPrevLeftSide + (1 - mode) * (1 - isPrevLeftSide)));
+    float nextAudioLVal = sign(bar.mergeLeftBar + particle.connector.left.enable) * bottomDirectionSelector *
+                          (getAudioVal(abs((mode)*lastN / 2 - nextN), lastN / (1. + mode),
+                                       isNextLeftSide + (1 - mode) * (1 - isNextLeftSide)));
+
+    bar.fragment.n = nCopyForBar;
+    particle.fragment.n = nCopyForParticle;
 
     particle.audio.current.y = particle.audio.multiplier * currentAudioVal;
     particle.audio.prev.y = particle.connector.right.enable * (particle.audio.multiplier * prevAudioVal);
@@ -760,9 +882,8 @@ void main()
 
     mat3x2 originalBarAudios = mat3x2(bar.audio.prev, bar.audio.current, bar.audio.next);
 
-    mat3x2 exchangeBarChannels = mat3x2(step(bar.audio.prev, vec2(0)),
-        step(bar.audio.current, vec2(0)),
-        step(bar.audio.next, vec2(0)));
+    mat3x2 exchangeBarChannels =
+        mat3x2(step(bar.audio.prev, vec2(0)), step(bar.audio.current, vec2(0)), step(bar.audio.next, vec2(0)));
 
     bar.audio.prev -= dot(exchangeBarChannels[0], originalBarAudios[0]);
     bar.audio.current -= dot(exchangeBarChannels[1], originalBarAudios[1]);
@@ -777,16 +898,36 @@ void main()
 
     vec2 prevBarSizeOffset = vec2(0), currentBarSizeOffset = vec2(0), nextBarSizeOffset = vec2(0);
 
-    setOffsets(0., prevParticleOffset, prevBarOffset, prevBarSizeOffset, bar.audio.prev, particle.audio.prev, particle.connector.rightCenter.x, prevN, lastN);
-    setOffsets(0., currentParticleOffset, currentBarOffset, currentBarSizeOffset, bar.audio.current, particle.audio.current, particle.connector.currentCenter.x, n, lastN);
-    setOffsets(0., nextParticleOffset, nextBarOffset, nextBarSizeOffset, bar.audio.next, particle.audio.next, particle.connector.leftCenter.x, nextN, lastN);
+    float prevConnectorAngle = particle.connector.right.enable * getNthCenter(prevN);
+    float nextConnectorAngle = particle.connector.left.enable * getNthCenter(nextN);
+
+    particle.connector.rightCenter = getConnectorCenter(prevConnectorAngle, vec2(0), 1.);
+    particle.connector.currentCenter = getConnectorCenter(currentCenterAngle, vec2(0), 1.);
+    particle.connector.leftCenter = getConnectorCenter(nextConnectorAngle, vec2(0), 1.);
+
+    setOffsets(0., prevParticleOffset, prevBarOffset, prevBarSizeOffset, bar.audio.prev, particle.audio.prev,
+               getNthCenter(prevN), prevN, lastN);
+    setOffsets(0., currentParticleOffset, currentBarOffset, currentBarSizeOffset, bar.audio.current,
+               particle.audio.current, currentCenterAngle, n, lastN);
+    setOffsets(0., nextParticleOffset, nextBarOffset, nextBarSizeOffset, bar.audio.next, particle.audio.next,
+               getNthCenter(nextN), nextN, lastN);
+
+    particle.connector.rightCenter = getConnectorCenter(prevConnectorAngle, prevParticleOffset, 1.);
+    particle.connector.currentCenter = getConnectorCenter(currentCenterAngle, currentParticleOffset, 1.);
+    particle.connector.leftCenter = getConnectorCenter(nextConnectorAngle, nextParticleOffset, 1.);
 
     setProps();
 
     currentParticleOffset += particle.offset;
+    nextParticleOffset += particle.offset;
+    prevParticleOffset += particle.offset;
+
     currentBarOffset += bar.offset;
+    prevBarOffset += bar.offset;
+    nextBarOffset += bar.offset;
+
     particle.fragment.n = int(mix(actualN, n, particle.connector.mergeEnds));
-    bar.fragment.n = int(mix(actualN, n, bar.mergeEnds));
+    bar.fragment.n = int(mix(actualNForBar, n, bar.mergeEnds));
 
     float iAA = circle.innerSoftness;
     float oAA = circle.outerSoftness;
@@ -803,7 +944,7 @@ void main()
     float actualCurrentCenterAngle = currentCenterAngle;
 
     vec2 currentBarNorm = vec2(cos(currentCenterAngle + currentBarOffset.x * RAD_PI),
-        sin((currentCenterAngle + currentBarOffset.x * RAD_PI)));
+                               sin((currentCenterAngle + currentBarOffset.x * RAD_PI)));
 
     prevCenterAngle += prevParticleOffset.x;
     currentCenterAngle += currentParticleOffset.x * RAD_PI;
@@ -816,7 +957,8 @@ void main()
     vec2 prevNorm = vec2(cos(prevCenterAngle), sin(prevCenterAngle));
     vec2 nextNorm = vec2(cos(nextCenterAngle), sin(nextCenterAngle));
 
-    particle.connector.currentCenter = (circle.radius + circle.borderSize + particle.audio.current.y) * currentParticleNorm;
+    particle.connector.currentCenter =
+        (circle.radius + circle.borderSize + particle.audio.current.y) * currentParticleNorm;
     particle.connector.rightCenter = (circle.radius + circle.borderSize + particle.audio.prev.y) * prevNorm;
     particle.connector.leftCenter = (circle.radius + circle.borderSize + particle.audio.next.y) * nextNorm;
 
@@ -825,10 +967,6 @@ void main()
     particle.connector.currentCenter += (currentParticleOffset.y + pICD2) * currentParticleNorm;
     particle.connector.leftCenter += (nextParticleOffset.y + pICD2) * nextNorm;
 
-    // prevParticleOffset.x *= RAD_PI;
-    // currentParticleOffset.x *= RAD_PI;
-    // nextParticleOffset.x *= RAD_PI;
-
     float H = (circle.radius + circle.borderSize + (bar.audio.current.y + bar.size.x) + currentBarOffset.y);
     float H2 = (circle.radius + circle.borderSize - (bar.size.z + bar.audio.current.x) + currentBarOffset.y);
 
@@ -836,18 +974,24 @@ void main()
     vec2 nextBarSize = vec2(bar.size.x + nextBarSizeOffset.x, bar.size.z + nextBarSizeOffset.y);
     bar.size.xz += currentBarSizeOffset;
 
-    int returnValue = (barSelector != 0
-            ? (bar.type == 2
-                      ? roundedBarsSDF(H * currentBarNorm,
-                            H2 * currentBarNorm, currentBarOffset)
-                      : barSDF(prevBarOffset, currentBarOffset, nextBarOffset, prevBarSize, nextBarSize))
-            : (0));
+    int returnValue =
+        (barSelector != 0
+             ? (bar.type == 2 ? roundedBarsSDF(H * currentBarNorm, H2 * currentBarNorm, currentBarOffset)
+                              : barSDF(prevBarOffset, currentBarOffset, nextBarOffset, prevBarSize, nextBarSize))
+             : (0));
 
     returnValue = particleSelector * topDirectionSelector != 0 ? particleSDF(0) : (0);
-    float upCapVal = ((particleSelector * topDirectionSelector != 0) && particle.cap.enable ? capSDF(0, 0, particle.fragment.distanceFromCenter - circle.radius - particle.radius - particle.borderSize - currentParticleOffset.y - pICD2, particle.fragment.span - currentParticleOffset.x, particle.cap.audio.y, 0, particle.cap) : 0);
+    float upCapVal =
+        ((particleSelector * topDirectionSelector != 0) && particle.cap.enable
+             ? capSDF(0, 0,
+                      particle.fragment.distanceFromCenter - circle.radius - particle.radius - particle.borderSize -
+                          currentParticleOffset.y - pICD2,
+                      particle.fragment.span - currentParticleOffset.x, particle.cap.audio.y, 0, particle.cap)
+             : 0);
 
     sdfs[PARTICLE_UP_CAP_SDF] = cutOff * upCapVal;
-    topParticleCapColor = mix(vec4(particle.cap.color.xyz * particle.cap.color.w, particle.cap.color.w), topParticleCapColor, 1. - particleSelector);
+    topParticleCapColor = mix(vec4(particle.cap.color.xyz * particle.cap.color.w, particle.cap.color.w),
+                              topParticleCapColor, 1. - particleSelector);
 
     vec4 cFC = circle.color;
     cFC.xyz *= cFC.w;
@@ -855,13 +999,27 @@ void main()
     vec4 cBC = circle.borderColor;
     cBC.xyz *= cBC.w;
 
-    float cutOffCircle = mix(1., cutOff, circle.restrictCircleAngle);
+    float cutOffCircle = mix(1., step(0, actualNForBar) * step(actualNForBar, lastN), circle.restrictCircleAngle);
 
     vec4 cC = (cutOffCircle) * (circleSDF.x * cFC + circleSDF.y * cBC);
     sdfs[CIRCLE_INNER_SDF] = (cutOffCircle)*circleSDF.x;
     sdfs[CIRCLE_OUTER_SDF] = (cutOffCircle)*circleSDF.y;
 
-    returnValue = (particleSelector * bottomDirectionSelector != 0 ? particleDownProps(prevNorm, currentParticleNorm, nextNorm, actualCurrentCenterAngle, prevN, nextN, cutOff) : 0);
+    returnValue = (particleSelector * bottomDirectionSelector != 0
+                       ? particleDownProps(currentParticleNorm, actualN, actualNForBar, actualCurrentCenterAngle, prevN,
+                                           nextN, cutOff)
+                       : 0);
+
+    nCopyForBar = bar.fragment.n;
+    nCopyForParticle = particle.fragment.n;
+
+    bar.fragment.n = actualNForBar;
+    particle.fragment.n = actualN;
+
     modifySDFs();
+
+    bar.fragment.n = nCopyForBar;
+    particle.fragment.n = nCopyForParticle;
+
     FragColor = getAllColors();
 }

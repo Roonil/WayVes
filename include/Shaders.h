@@ -4,9 +4,12 @@
 #include "Errors.h"
 #include <epoxy/gl.h>
 
+#include "DMABufHandler.h"
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
 enum ShaderTypes {
     VERTEX,
@@ -17,22 +20,23 @@ enum ShaderTypes {
 class ShaderCompilationArgs {
 public:
     unsigned int* glProgram = NULL;
-    int windowWidth = 0, windowHeight = 0, tolerable = 0;
+    int windowWidth = 0, windowHeight = 0;
     std::map<std::string, int>* uniformLocations = NULL;
     std::map<std::string, std::string>* uniformValues = NULL;
     std::map<std::string, int>* uniformTypes = NULL;
+
+    virtual ~ShaderCompilationArgs() = default;
 };
 
 class VertexShaderCompilationArgs : public ShaderCompilationArgs {
 public:
-    VertexShaderCompilationArgs(int windowWidth, int windowHeight, int tolerable, unsigned int* glProgram,
+    VertexShaderCompilationArgs(int windowWidth, int windowHeight, unsigned int* glProgram,
         std::map<std::string, int>* uniformLocations,
         std::map<std::string, std::string>* uniformValues,
         std::map<std::string, int>* uniformTypes)
     {
         this->windowWidth = windowWidth;
         this->windowHeight = windowHeight;
-        this->tolerable = tolerable;
         this->glProgram = glProgram;
         this->uniformLocations = uniformLocations;
         this->uniformValues = uniformValues;
@@ -45,16 +49,18 @@ class FragmentShaderCompilationArgs : public ShaderCompilationArgs {
 public:
     int numAtomicTextures, numImageTextures;
     unsigned int *atomicImageTexture, *imageTexture;
-    FragmentShaderCompilationArgs(int windowWidth, int windowHeight, int tolerable, unsigned int* glProgram,
+
+    const std::vector<std::unique_ptr<DMABufHandler>>* dmaBufHandlers = NULL;
+    FragmentShaderCompilationArgs(int windowWidth, int windowHeight, unsigned int* glProgram,
         std::map<std::string, int>* uniformLocations,
         std::map<std::string, std::string>* uniformValues,
         std::map<std::string, int>* uniformTypes,
 
+        const std::vector<std::unique_ptr<DMABufHandler>>* dmaBufHandlers = NULL,
         int numAtomicTextures = 0, int numImageTextures = 0, unsigned int* atomicImageTexture = NULL, unsigned int* imageTexture = NULL)
     {
         this->windowWidth = windowWidth;
         this->windowHeight = windowHeight;
-        this->tolerable = tolerable;
         this->glProgram = glProgram;
         this->uniformLocations = uniformLocations;
         this->uniformValues = uniformValues;
@@ -63,6 +69,7 @@ public:
         this->numImageTextures = numImageTextures;
         this->atomicImageTexture = atomicImageTexture;
         this->imageTexture = imageTexture;
+        this->dmaBufHandlers = dmaBufHandlers;
     }
 };
 
@@ -88,7 +95,7 @@ protected:
 
         ShaderCompilationArgs* args) = 0;
 
-    void checkCompileErrors(std::string type, int tolerable);
+    void checkCompileErrors(std::string type);
 
 public:
     int windowWidth = 0, windowHeight = 0;
@@ -134,25 +141,33 @@ protected:
 public:
     unsigned int frameBufferObject = 0, outputTexture = 0;
 
-    void bind2DTextureToFrameBuffer(char* errorContext)
+    const std::vector<std::unique_ptr<DMABufHandler>>* dmaBufHandlers = NULL;
+
+    void bind2DTextureToFrameBuffer(char* errorContext, bool exportDMABuf)
     {
 
-        glGenFramebuffers(1, &frameBufferObject);
-        glGenTextures(1, &outputTexture);
-        glBindTexture(GL_TEXTURE_2D, outputTexture);
+        if (frameBufferObject == 0)
+            glGenFramebuffers(1, &frameBufferObject);
+        if (outputTexture == 0) {
+            glGenTextures(1, &outputTexture);
+            glBindTexture(GL_TEXTURE_2D, outputTexture);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, windowWidth, windowHeight, 0, GL_BGRA,
-            GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            if (exportDMABuf)
+                glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, windowWidth, windowHeight);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+            else
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, windowWidth, windowHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        }
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferObject);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
             outputTexture, 0);
@@ -161,6 +176,12 @@ public:
             Errors::throwError("an error occured while binding texture to framebuffer", std::string(errorContext), std::string("In"));
             exit(0);
         }
+
+        if (!exportDMABuf || dmaBufHandlers == NULL)
+            return;
+
+        for (auto& handler : *dmaBufHandlers)
+            handler->setTexture(&outputTexture, windowWidth, windowHeight);
     }
 
     FragmentShader()

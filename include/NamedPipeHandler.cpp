@@ -1,6 +1,8 @@
 #include "NamedPipeHandler.h"
 #include "Errors.h"
 
+#include <cstring>
+
 #include <sys/socket.h>
 #include <filesystem>
 #include <sys/un.h>
@@ -9,24 +11,27 @@
 void NamedPipeHandler::createFIFOAtPath(std::string fifoPath)
 {
     std::filesystem::create_directories(std::filesystem::path(pipeDirectory).parent_path());
+    struct stat st;
 
+    if (stat(fifoPath.c_str(), &st) == 0)
+    {
+        if (!S_ISFIFO(st.st_mode))
+        {
+            if (unlink(fifoPath.c_str()) == -1)
+                Errors::throwError(std::string("a file that isn't a named pipe is in the way and couldn't be removed: ") + std::strerror(errno), fifoPath, "For");
+        }
+    }
     if (mkfifo(fifoPath.c_str(), 0666) == -1)
     {
         if (errno != EEXIST)
-        {
-            perror("mkfifo");
-            Errors::throwError("error while creating named pipe", fifoPath, "For");
-        }
+            Errors::throwError(std::string("error while creating named pipe: ") + std::strerror(errno), fifoPath, "For");
     }
 }
 int NamedPipeHandler::openFIFOFromPath(std::string fifoPath)
 {
     int fifo_fd = open(fifoPath.c_str(), O_RDONLY | O_NONBLOCK);
     if (fifo_fd == -1)
-    {
-        perror("open");
-        Errors::throwError("error while opening named pipe.", fifoPath, "For");
-    }
+        Errors::throwError(std::string("error while opening named pipe: ") + std::strerror(errno), fifoPath, "For");
 
     return fifo_fd;
 }

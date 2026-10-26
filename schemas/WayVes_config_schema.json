@@ -66,8 +66,8 @@
         },
         "adjacent-sample-nums": {
           "type": "integer",
-          "default": 0,
-          "minimum": 0,
+          "default": 1,
+          "minimum": 1,
           "description": "The Number of samples that are taken from the left and right of the current audio sample, that are also included in the current audio sample. The final result is then averaged based on the number of averaged samples."
         }
       }
@@ -167,10 +167,14 @@
           "default": 0,
           "type": "integer"
         },
+
         "layer": {
-          "type": ["integer", "string"],
+          "anyOf": [
+            { "type": "integer", "minimum": 0, "maximum": 3 },
+            { "type": "string", "enum": ["Background", "Bottom", "Top", "Overlay"] }
+          ],
           "default": "Bottom",
-          "description": "Specifies the position of the Shader on the 'Z-Axis'.\n0 | Bottom : Beneath all Applications\n1 | Background : Beneath all Applications, above Bottom Layer\n2 | Top : On top of all Applications, except Fullscreen Applications\n3 | Overlay : Above all Applications"
+          "description": "Specifies the position of the Shader on the 'Z-Axis'.\n0 | Background : Beneath all Applications\n1 | Bottom : Beneath all Applications, above Background Layer\n2 | Top : On top of all Applications, except Fullscreen Applications\n3 | Overlay : Above all Applications"
         },
         "anchor-left": {
           "type": "boolean",
@@ -181,6 +185,12 @@
           "type": "boolean",
           "default": false,
           "description": "Whether to enable Exclusive Layer for this Window."
+        },
+
+        "initial-visibility": {
+          "type": "boolean",
+          "default": true,
+          "description": "The Initial Visibility of this Window. For Visualisers, it will setup the Audio Shaders and won't render. For Paintables, the Window won't be visible from the first moment onwards."
         },
 
         "anchor-right": {
@@ -236,6 +246,20 @@
               "type": "integer",
               "description": "The Number of Image Textures (RGBA32F) that should be created for the Shader."
             },
+            "rendering-mode": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 2 },
+                { "type": "string", "enum": ["Windowed", "Detached", "Mixed"] }
+              ],
+              "default": "Windowed",
+              "description": "Specifies the rendering mode of the Shader.\n0 | Windowed : Renders in a normal Window\n1 | Detached : Uses DMABUFs to render to, so the final output can be displayed in a separate Process running on the same GPU as this instance of WayVes.\n2 | Mixed : Renders normally to a Window, and also export DMABUFs so it can be displayed in another Process running on the same GPU as this instance of WayVes."
+            },
+
+            "hot-reload": {
+              "type": "boolean",
+              "default": true,
+              "description": "Specifies whether to hot-reload .glsl file changes in real-time."
+            },
             "fps": {
               "type": "integer",
               "minimum": 0,
@@ -257,6 +281,15 @@
                 "description": "Override Value. Should conform to 'variableName=newVariableValue' format."
               }
             },
+            "rendering-sockets": {
+              "type": "array",
+              "description": "The names of sockets to send the DMABuf file descriptors to when using 'Detached' or 'Mixed' rendering modes. Present in '/tmp/WayVes' directory, with '.sock' suffix. Defaults to the 'class-name' when not specified.",
+              "items": {
+                "type": "string",
+                "description": "The name of the socket file."
+              }
+            },
+
             "audio-overrides": {
               "description": "Specify Audio Overrides that deviate from the Audio Object's Audio Overrides. Unspecified values take on the values from the Audio Object's Overrides.",
               "$ref": "#/definitions/audio-overrides"
@@ -315,10 +348,9 @@
           "type": "boolean",
           "description": "Enable if microphone input audio needs to be captured. Consumed by PipeWire."
         },
-
         "target-object": {
           "type": "string",
-          "description": "Specifies the Target Object to which the PipeWire Stream will be connected. Consumed by PipeWire."
+          "description": "The PipeWire node to capture from, by its object.serial or node.name. Captures from the default node when not specified. Consumed by PipeWire."
         },
         "audio-format": {
           "type": "string",

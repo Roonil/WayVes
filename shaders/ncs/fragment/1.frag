@@ -94,6 +94,8 @@ void defaultFractalFieldValues()
     fractalField.minVal = -1;
     fractalField.maxVal = 1;
 
+    fractalField.noiseType = 0;
+
     fractalField.noise = vec3(0);
 
     fractalField.affectOpacity = 0;
@@ -126,17 +128,54 @@ void defaultSphereValues()
 void setAudio()
 {
 
-    float audioRadius = (max(texture(audioR, audio.samplePoints[0]).x, texture(audioR, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x) + max(texture(audioL, audio.samplePoints[0]).x, texture(audioL, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x)) / 2;
-    float audioFractal1 = (max(texture(audioR, audio.samplePoints[1]).x, texture(audioR, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x) + max(texture(audioL, audio.samplePoints[1]).x, texture(audioL, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x)) / 2;
-    float audioFractal2 = (max(texture(audioR, audio.samplePoints[2]).x, texture(audioR, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x) + max(texture(audioL, audio.samplePoints[2]).x, texture(audioL, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x)) / 2;
-    float audioFractal3 = (max(texture(audioR, audio.samplePoints[3]).x, texture(audioR, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x) + max(texture(audioL, audio.samplePoints[3]).x, texture(audioL, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x)) / 2;
-    float audioFractal4 = (max(texture(audioR, audio.samplePoints[4]).x, texture(audioR, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x) + max(texture(audioL, audio.samplePoints[4]).x, texture(audioL, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x)) / 2;
-    float audioFractal5 = (max(texture(audioR, audio.samplePoints[5]).x, texture(audioR, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x) + max(texture(audioL, audio.samplePoints[5]).x, texture(audioL, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x)) / 2;
-    float audioFractal6 = (max(texture(audioR, audio.samplePoints[6]).x, texture(audioR, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x) + max(texture(audioL, audio.samplePoints[6]).x, texture(audioL, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x)) / 2;
-    float audioFractal7 = (max(texture(audioR, audio.samplePoints[7]).x, texture(audioR, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x) + max(texture(audioL, audio.samplePoints[7]).x, texture(audioL, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x)) / 2;
-    float audioFractal8 = (max(texture(audioR, audio.samplePoints[8]).x, texture(audioR, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x) + max(texture(audioL, audio.samplePoints[8]).x, texture(audioL, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x)) / 2;
+    float audioRadius = (max(texture(audioR, audio.samplePoints[0]).x,
+                             texture(audioR, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x) +
+                         max(texture(audioL, audio.samplePoints[0]).x,
+                             texture(audioL, audio.samplePoints[0] + audio.samplePointsDifferences[0]).x)) /
+                        2;
+    float audioFractal1 = (max(texture(audioR, audio.samplePoints[1]).x,
+                               texture(audioR, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x) +
+                           max(texture(audioL, audio.samplePoints[1]).x,
+                               texture(audioL, audio.samplePoints[1] + audio.samplePointsDifferences[1]).x)) /
+                          2;
+    float audioFractal2 = (max(texture(audioR, audio.samplePoints[2]).x,
+                               texture(audioR, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x) +
+                           max(texture(audioL, audio.samplePoints[2]).x,
+                               texture(audioL, audio.samplePoints[2] + audio.samplePointsDifferences[2]).x)) /
+                          2;
+    float audioFractal3 = (max(texture(audioR, audio.samplePoints[3]).x,
+                               texture(audioR, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x) +
+                           max(texture(audioL, audio.samplePoints[3]).x,
+                               texture(audioL, audio.samplePoints[3] + audio.samplePointsDifferences[3]).x)) /
+                          2;
+    float audioFractal4 = (max(texture(audioR, audio.samplePoints[4]).x,
+                               texture(audioR, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x) +
+                           max(texture(audioL, audio.samplePoints[4]).x,
+                               texture(audioL, audio.samplePoints[4] + audio.samplePointsDifferences[4]).x)) /
+                          2;
+    float audioFractal5 = (max(texture(audioR, audio.samplePoints[5]).x,
+                               texture(audioR, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x) +
+                           max(texture(audioL, audio.samplePoints[5]).x,
+                               texture(audioL, audio.samplePoints[5] + audio.samplePointsDifferences[5]).x)) /
+                          2;
+    float audioFractal6 = (max(texture(audioR, audio.samplePoints[6]).x,
+                               texture(audioR, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x) +
+                           max(texture(audioL, audio.samplePoints[6]).x,
+                               texture(audioL, audio.samplePoints[6] + audio.samplePointsDifferences[6]).x)) /
+                          2;
+    float audioFractal7 = (max(texture(audioR, audio.samplePoints[7]).x,
+                               texture(audioR, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x) +
+                           max(texture(audioL, audio.samplePoints[7]).x,
+                               texture(audioL, audio.samplePoints[7] + audio.samplePointsDifferences[7]).x)) /
+                          2;
+    float audioFractal8 = (max(texture(audioR, audio.samplePoints[8]).x,
+                               texture(audioR, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x) +
+                           max(texture(audioL, audio.samplePoints[8]).x,
+                               texture(audioL, audio.samplePoints[8] + audio.samplePointsDifferences[8]).x)) /
+                          2;
 
-    float audios[8] = { audioFractal1, audioFractal2, audioFractal3, audioFractal4, audioFractal5, audioFractal6, audioFractal7, audioFractal8 };
+    float audios[8] = {audioFractal1, audioFractal2, audioFractal3, audioFractal4,
+                       audioFractal5, audioFractal6, audioFractal7, audioFractal8};
 
     float temp;
     temp = max(audios[0], audios[2]);
@@ -215,7 +254,12 @@ void setAudio()
     audios[5] = min(audios[5], audios[6]);
     audios[6] = temp;
 
-    audio.value = audio.multiplier * mix(mix(audios[7] * audios[6] - audios[1] * audios[0], audios[7] * audios[6], audios[5]), mix(audios[6] * mix(audios[7] - audios[0], audios[6] - audios[3], audios[7] * audios[6]) - pow(audios[1] * audios[0], audio.exponentiationFactor), audios[7] * audios[6], audios[5] * audios[4]), audio.mixing);
+    audio.value = audio.multiplier *
+                  mix(mix(audios[7] * audios[6] - audios[1] * audios[0], audios[7] * audios[6], audios[5]),
+                      mix(audios[6] * mix(audios[7] - audios[0], audios[6] - audios[3], audios[7] * audios[6]) -
+                              pow(audios[1] * audios[0], audio.exponentiationFactor),
+                          audios[7] * audios[6], audios[5] * audios[4]),
+                      audio.mixing);
 
     audio.bass = audio.bassMultiplier * abs(audioRadius);
 
@@ -237,12 +281,13 @@ float octaveNoise(vec4 p, vec4 flow, vec4 rep)
     float amplitude = 1.0;
     float value = 0.0;
 
-    for (int i = 0; i < fractalField.complexity; i += 1) {
+    for (int i = 0; i < fractalField.complexity; i += 1)
+    {
 
         vec4 fractalFieldInput = p;
         modifyNoiseCoordinates(fractalFieldInput);
 
-        fractalFieldInput += flow * time;
+        fractalFieldInput += (flow + vec4(0, 0, 0, 0)) * time;
 
         fractalFieldInput *= frequency;
 
@@ -263,7 +308,8 @@ float fbm3(vec4 p, vec4 flow)
 
     flowXLoopFrames = mix(vec4(1), flowXLoopFrames, 1. - step(abs(flowXLoopFrames), vec4(0)));
 
-    vec4 newFScale = mix(fractalField.dimensions * rep / (flowXLoopFrames), vec4(fractalField.fScale), vec4(1) - abs(fractalField.loop * sign(flow)));
+    vec4 newFScale = mix(fractalField.dimensions * rep / (flowXLoopFrames), vec4(fractalField.fScale),
+                         vec4(1) - abs(fractalField.loop * sign(flow)));
 
     p = newFScale * p / fractalField.dimensions;
     flow *= newFScale / fractalField.dimensions;
@@ -273,7 +319,7 @@ float fbm3(vec4 p, vec4 flow)
 
     float oN = (fractalField.constantNoiseMultiplier + audio.value) * (octaveNoise(p, flow, rep));
 
-    oN = sign(oN) * pow(abs(oN), fractalField.gamma);
+    oN = mix(sign(oN), 1., fractalField.noiseType) * pow(abs(oN), fractalField.gamma);
 
     sphere.center = originalSphereCenter;
 
@@ -289,16 +335,19 @@ vec3 sphereCoords(vec3 particleCoords, float zLayer, float zLayerDistance)
 
     vec3 newPos;
 
-    float u = (TWOPI * (((particleCoords.x) / (resolution.x))));
-    float v = PI * (particleCoords.y / resolution.y);
+    float modifier = resolution.y / baseForm.numParticles.y;
 
-    newPos.x = resolution.x * sin(u) * sin(v);
+    float u = (TWOPI * (((particleCoords.x) / (resolution.x))));
+    float v = PI * ((particleCoords.y + modifier) / (resolution.y + 2 * modifier));
+
+    newPos.x = -resolution.x * sin(u) * sin(v);
     newPos.z = baseForm.zSize * cos(u) * sin(v);
-    newPos.y = resolution.y * cos(v);
+    newPos.y = -resolution.y * cos(v);
 
     newPos.xy += resolution.xy / 2.;
 
-    newPos -= zLayer * (vec3(resolution.xy / 2., baseForm.zSize / 2.) / baseForm.numParticles.z) * normalize(newPos - vec3(resolution.xy / 2, 0));
+    newPos -= zLayer * (vec3(resolution.xy / 2., baseForm.zSize / 2.) / baseForm.numParticles.z) *
+              normalize(newPos - vec3(resolution.xy / 2, 0));
 
     return newPos;
 }
@@ -331,7 +380,10 @@ void processZLayer(int zLayer, float zLayerDistance)
 
     setPropsWithNoise();
 
-    displacementValues.xyz += mix(vec3((fractalField.displacements.x) * xFBM3, (fractalField.displacements.y) * yFBM3, (fractalField.displacements.z) * zFBM3), (fractalField.displacements.x) * xFBM3 * normalize(particleCoords.xyz - vec3(resolution.xy / 2, 0)), fractalField.displacementType);
+    displacementValues.xyz += mix(vec3(fractalField.displacements * fractalField.noise),
+                                  (fractalField.displacements.x) * fractalField.noise.x *
+                                      normalize(particleCoords.xyz - vec3(resolution.xy / 2, 0)),
+                                  fractalField.displacementType);
 
     particleCoords.xyz += displacementValues;
 
@@ -347,17 +399,27 @@ void processZLayer(int zLayer, float zLayerDistance)
     float diff = length(newPos - particleCoords);
     diff *= (clamp((smoothstep(0.0, sphere.feather * (radius), diff)) + blurSize, blurSize, 1.0 + blurSize));
 
-    particleCoords += step(length(vectorFromSphereCenter), radius) * sphere.strength * diff * normalizedVector * sphere.scale;
+    particleCoords +=
+        step(length(vectorFromSphereCenter), radius) * sphere.strength * diff * normalizedVector * sphere.scale;
 
+    particle.position = particleCoords;
     modifySphericalDisplacement();
 
-    particle.size = int(max(0., particle.size + fractalField.affectSize * (xFBM3 + yFBM3 + zFBM3)));
-    particle.opacityMultiplier = max(particle.opacityMultiplier + fractalField.affectOpacity * (xFBM3 + yFBM3 + zFBM3), 0.);
+    particle.size = int(max(0., particle.size + fractalField.affectSize * (fractalField.noise.x + fractalField.noise.y +
+                                                                           fractalField.noise.z)));
+    particle.opacityMultiplier =
+        max(particle.opacityMultiplier +
+                fractalField.affectOpacity * (fractalField.noise.x + fractalField.noise.y + fractalField.noise.z),
+            0.);
 
     for (int i = -particle.size; i <= particle.size; i++)
-        for (int j = -particle.size; j <= particle.size; j++) {
+        for (int j = -particle.size; j <= particle.size; j++)
+        {
             float distanceFromParticleCenter = length(vec2(i, j));
-            distanceFromParticleCenter = mix(step(distanceFromParticleCenter, float(particle.size)), (1. - smoothstep(particle.size - particle.feather * particle.size, (particle.size), distanceFromParticleCenter)), particle.feather);
+            distanceFromParticleCenter = mix(step(distanceFromParticleCenter, float(particle.size)),
+                                             (1. - smoothstep(particle.size - particle.feather * particle.size,
+                                                              (particle.size), distanceFromParticleCenter)),
+                                             sign(particle.feather));
             distanceFromParticleCenter *= 100000. * particle.opacityMultiplier;
 
             vec3 finalCoords = vec3(transformedCoords(particleCoords.xyz) + vec3(i, j, 0)) / baseForm.scale;
@@ -365,11 +427,17 @@ void processZLayer(int zLayer, float zLayerDistance)
 
             uint depth = imageAtomicAdd(atomicImageTexture0, ivec2(finalCoords.xy), uint((distanceFromParticleCenter)));
 
-            if ((colorTracking) == 1.) {
-                uint colorValue = imageAtomicAdd(atomicImageTexture1, ivec2(finalCoords.xy), uint(clamp(particle.color.x * distanceFromParticleCenter, 0., 100000.)));
-                colorValue = imageAtomicAdd(atomicImageTexture2, ivec2(finalCoords.xy), uint(clamp(particle.color.y * distanceFromParticleCenter, 0., 100000.)));
-                colorValue = imageAtomicAdd(atomicImageTexture3, ivec2(finalCoords.xy), uint(clamp(particle.color.z * distanceFromParticleCenter, 0., 100000.)));
-                colorValue = imageAtomicAdd(atomicImageTexture4, ivec2(finalCoords.xy), uint(clamp(particle.color.w * distanceFromParticleCenter, 0., 100000.)));
+            if ((colorTracking) == 1.)
+            {
+                uint colorValue =
+                    imageAtomicAdd(atomicImageTexture1, ivec2(finalCoords.xy),
+                                   uint(clamp(particle.color.x * distanceFromParticleCenter, 0., 100000.)));
+                colorValue = imageAtomicAdd(atomicImageTexture2, ivec2(finalCoords.xy),
+                                            uint(clamp(particle.color.y * distanceFromParticleCenter, 0., 100000.)));
+                colorValue = imageAtomicAdd(atomicImageTexture3, ivec2(finalCoords.xy),
+                                            uint(clamp(particle.color.z * distanceFromParticleCenter, 0., 100000.)));
+                colorValue = imageAtomicAdd(atomicImageTexture4, ivec2(finalCoords.xy),
+                                            uint(clamp(particle.color.w * distanceFromParticleCenter, 0., 100000.)));
             }
         }
 }
@@ -385,16 +453,18 @@ void main()
     init();
     setAudio();
 
-    ivec3 spaces = ivec3(round((vec3(resolution.xy, baseForm.zSize)) / (vec3(baseForm.numParticles - step(baseForm.type, 0) * vec3(1, 1, 1)))));
+    ivec3 spaces = ivec3(round((vec3(resolution.xy, baseForm.zSize)) / (vec3(baseForm.numParticles - vec3(1, 1, 1)))));
 
-    spaces -= int(step(baseForm.type, 0)) * ivec3(1, 1, 1);
+    spaces -= ivec3(1, 1, 1);
+    // spaces = max(spaces, ivec3(1));
 
     particle.position.z -= (baseForm.numParticles.z - 1) * (spaces.z) / 2.;
 
     particle.position.xy += step(baseForm.numParticles.xy, vec2(1)) * vec2(resolution.xy / 2.);
 
     int currentZIndex = 0;
-    for (float i = 0; i < baseForm.zSize; i += spaces.z) {
+    for (float i = 0; i < baseForm.zSize; i += spaces.z)
+    {
 
         if ((length(ivec3(mod(vec3(gl_FragCoord.xy, 0), spaces))) > 0))
             discard;

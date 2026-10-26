@@ -1,4 +1,7 @@
-struct BaseForm {
+
+// Base Form
+struct BaseForm
+{
     // Represents the `Grid` of the `Particles`.
 
     // Type of the `Grid` to use. 0 for `Rectangular`, and 1 for `Spherical Grid` arranged as `Concentric Circles`
@@ -9,7 +12,8 @@ struct BaseForm {
     vec3 scale;
     // Example: vec3(2)
 
-    // The number of `Particles` to render. Maximum number of `Particles` in each Dimension is the size of the window in that dimension
+    // The number of `Particles` to render. Maximum number of `Particles` in each Dimension is the size of the window in
+    // that dimension
     vec3 numParticles;
     // Example: resolution.xy
 
@@ -26,48 +30,9 @@ struct BaseForm {
     // Example: vec3(resolution.xy / 2, 0)
 } baseForm;
 
-struct Audio {
-    // Represents various Audio Settings and captured Audio Data.
-
-    // Determines the strength by which the audio stream affects the inner `Fractal Field` displacements
-    float multiplier;
-    // Example: 7
-
-    // Determines the `Sphere's` size change by the audio's lower frequencies
-    float bassMultiplier;
-    // Example: 5
-
-    // Between 0 and 1. Greater value means stronger reaction to beats or tonal changes in audio
-    float mixing;
-    // Example: 0.5
-
-    // Audio value corresponding to the lower frequencies is stored here
-    float bass;
-    // Example: -
-
-    // The Factor that is used to raise the power of the intermediate Audio Data Points, for the 'quickness' of the reactions when there is a sudden change in the playing Frequencies
-    float exponentiationFactor;
-    // Example: 1.02
-
-    // The Normalised Points at which Audio Samples are taken for an Intermediate Audio Value that is used to derive the final Audio output value.
-    float samplePoints[9];
-    // Example: {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}
-
-    // The Step for the next Audio Sample Point for the current Intermediate Audio Value, which will be used to find the maximum of the Audio Data at this stepped Point and the Point before the difference.
-    float samplePointsDifferences[9];
-    // Example: {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05}
-
-    // Intermediate Audio Values, stored in Ascending Order of the Intensity of the Frequencies. Used to derive the final driving audio value
-    float intermediateAudios[8];
-    // Example: -
-
-    // The Final Audio Value that is derived from the Intermediate Audio Values
-    float value;
-    // Example: -
-
-} audio;
-
-struct Particle {
+// Particle Properties
+struct Particle
+{
     // Represents individual `Particles`.
 
     // Color of the `Particles`
@@ -99,10 +64,60 @@ struct Particle {
     // Example: -
 } particle;
 
-struct FractalField {
+// Audio Controls
+struct Audio
+{
+    // Represents various Audio Settings and captured Audio Data.
+
+    // Determines the strength by which the audio stream affects the inner `Fractal Field` displacements
+    float multiplier;
+    // Example: 7
+
+    // Determines the `Sphere's` size change by the audio's lower frequencies
+    float bassMultiplier;
+    // Example: 5
+
+    // Between 0 and 1. Greater value means stronger reaction to beats or tonal changes in audio
+    float mixing;
+    // Example: 0.5
+
+    // Audio value corresponding to the lower frequencies is stored here
+    float bass;
+    // Example: -
+
+    // The Factor that is used to raise the power of the intermediate Audio Data Points, for the 'quickness' of the
+    // reactions when there is a sudden change in the playing Frequencies
+    float exponentiationFactor;
+    // Example: 1.02
+
+    // The Normalised Points at which Audio Samples are taken for an Intermediate Audio Value that is used to derive the
+    // final Audio output value.
+    float samplePoints[9];
+    // Example: {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}
+
+    // The Step for the next Audio Sample Point for the current Intermediate Audio Value, which will be used to find the
+    // maximum of the Audio Data at this stepped Point and the Point before the difference.
+    float samplePointsDifferences[9];
+    // Example: {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05}
+
+    // Intermediate Audio Values, stored in Ascending Order of the Intensity of the Frequencies. Used to derive the
+    // final driving audio value
+    float intermediateAudios[8];
+    // Example: -
+
+    // The Final Audio Value that is derived from the Intermediate Audio Values
+    float value;
+    // Example: -
+
+} audio;
+
+// Fractal Field Controls
+struct FractalField
+{
     // Represents the Underlying `Noise Field`.
 
-    // Defines the multiplier value with which a `Noise Octave` gets added in to the final `Noise Output`. Higher values produce more peaks and valleys
+    // Defines the multiplier value with which a `Noise Octave` gets added in to the final `Noise Output`. Higher values
+    // produce more peaks and valleys
     float octaveMultiplier;
     // Example: 0.5
 
@@ -110,11 +125,13 @@ struct FractalField {
     float octaveScale;
     // Example: 1.5
 
-    // Defines the number of `Octaves`, or the number of values that add up in the final `Noise Output`. Higher is slower.
+    // Defines the number of `Octaves`, or the number of values that add up in the final `Noise Output`. Higher is
+    // slower.
     int complexity;
     // Example: 3
 
-    // Defines the scale of the overall noise-displaced `Particle Grid`. Higher value gives a 'zoomed-in' view, providing more displaced output
+    // Defines the scale of the overall noise-displaced `Particle Grid`. Higher value gives a 'zoomed-in' view,
+    // providing more displaced output
     float fScale;
     // Example: 10
 
@@ -122,9 +139,14 @@ struct FractalField {
     vec4 dimensions;
     // Example: vec4(1000)
 
-    // Adjusts the difference between the valleys and peaks of the `Noise Output`, similar to gamma for brightness / contrast values
+    // Adjusts the difference between the valleys and peaks of the `Noise Output`, similar to gamma for brightness /
+    // contrast values
     float gamma;
     // Example: 1
+
+    // Type of noise. 0 is `normal`, while 1 is `abs`
+    float noiseType;
+    // Example: 0
 
     // Determines the minimum possible output value of the `Noise` function
     float minVal;
@@ -142,7 +164,8 @@ struct FractalField {
     float noiseMultiplier;
     // Example: 1
 
-    // Value that gets added along with the Audio Value to the overall `Noise` generated; can be used to have a non-zero `Noise Output`
+    // Value that gets added along with the Audio Value to the overall `Noise` generated; can be used to have a non-zero
+    // `Noise Output`
     float constantNoiseMultiplier;
     // Example: 0
 
@@ -158,11 +181,14 @@ struct FractalField {
     int loop;
     // Example: 0
 
-    // The Number of Frames after which the `Fractal Field` will loop. `fScale >= loopTime * min(flow.x, flow.y, flow.z, flow.w) / dimensions` should be satisfied for the looping to take place, or you might see unexpected `Noise` values
+    // The Number of Frames after which the `Fractal Field` will loop. `fScale >= loopTime * min(flow.x, flow.y, flow.z,
+    // flow.w) / dimensions` should be satisfied for the looping to take place, or you might see unexpected `Noise`
+    // values
     int loopFrames;
     // Example: 200
 
-    // The type of the displacement to use. 0 is `Normal Displacement`, and 1 is `Radial Displacement` (strength of the displacement is determined by `displacements.x`)
+    // The type of the displacement to use. 0 is `Normal Displacement`, and 1 is `Radial Displacement` (strength of the
+    // displacement is determined by `displacements.x`)
     int displacementType;
     // Example: 0
 
@@ -179,7 +205,9 @@ struct FractalField {
     // Example: -
 } fractalField;
 
-struct Sphere {
+// Sphere Controls
+struct Sphere
+{
     // Represents the `Sphere` that can displace the `Particles` Radially.
 
     // Radius of the `Sphere`
@@ -219,10 +247,7 @@ mat3 rotateX(float angle)
     float angleRads = angle * RAD_PI;
     float sinAngle = sin(angleRads), cosAngle = cos(angleRads);
 
-    mat3x3 rotationMatrix = mat3x3(
-        vec3(1, 0, 0),
-        vec3(0, cosAngle, sinAngle),
-        vec3(0, -sinAngle, cosAngle));
+    mat3x3 rotationMatrix = mat3x3(vec3(1, 0, 0), vec3(0, cosAngle, sinAngle), vec3(0, -sinAngle, cosAngle));
 
     return rotationMatrix;
 }
@@ -233,10 +258,7 @@ mat3 rotateY(float angle)
     float angleRads = angle * RAD_PI;
     float sinAngle = sin(angleRads), cosAngle = cos(angleRads);
 
-    mat3x3 rotationMatrix = mat3x3(
-        vec3(cosAngle, 0, -sinAngle),
-        vec3(0, 1, 0),
-        vec3(sinAngle, 0, cosAngle));
+    mat3x3 rotationMatrix = mat3x3(vec3(cosAngle, 0, -sinAngle), vec3(0, 1, 0), vec3(sinAngle, 0, cosAngle));
 
     return rotationMatrix;
 }
@@ -247,10 +269,7 @@ mat3 rotateZ(float angle)
     float angleRads = angle * RAD_PI;
     float sinAngle = sin(angleRads), cosAngle = cos(angleRads);
 
-    mat3x3 rotationMatrix = mat3x3(
-        vec3(cosAngle, sinAngle, 0),
-        vec3(-sinAngle, cosAngle, 0),
-        vec3(0, 0, 1));
+    mat3x3 rotationMatrix = mat3x3(vec3(cosAngle, sinAngle, 0), vec3(-sinAngle, cosAngle, 0), vec3(0, 0, 1));
 
     return rotationMatrix;
 }
