@@ -9,6 +9,9 @@
 #include <map>
 #include <memory>
 #include <string>
+
+int detectType(std::string value);
+void parseValue(std::string value, double* numArray, bool* boolArray);
 #include <vector>
 
 enum ShaderTypes {

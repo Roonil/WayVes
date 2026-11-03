@@ -471,6 +471,89 @@ gboolean ShaderProgram::realize(GtkGLArea* area)
     return TRUE;
 }
 
+void ShaderProgram::resolveAnimationStart(const std::string& name, UniformAnimation& animation)
+{
+    animation.fromResolved = true;
+
+    auto currentValue = uniformValues.find(name);
+    if (currentValue != uniformValues.end()) {
+        bool boolArray[4] = { 0, 0, 0, 0 };
+        parseValue(currentValue->second, animation.from, boolArray);
+        return;
+    }
+
+    std::copy(animation.to, animation.to + 4, animation.from);
+
+    auto type = uniformTypes.find(name);
+    if (type == uniformTypes.end())
+        return;
+
+    for (ShaderStage* stage = startStage; stage != NULL && stage->next != NULL; stage = stage->next) {
+        auto location = stage->uniformLocations.find(name);
+        if (location == stage->uniformLocations.end() || location->second < 0)
+            continue;
+
+        switch (type->second) {
+        case GL_INT:
+        case GL_INT_VEC2:
+        case GL_INT_VEC3:
+        case GL_INT_VEC4: {
+            GLint values[4] = { 0, 0, 0, 0 };
+            glGetUniformiv(stage->glProgram, location->second, values);
+            std::copy(values, values + 4, animation.from);
+            break;
+        }
+        case GL_DOUBLE:
+        case GL_DOUBLE_VEC2:
+        case GL_DOUBLE_VEC3:
+        case GL_DOUBLE_VEC4:
+            glGetUniformdv(stage->glProgram, location->second, animation.from);
+            break;
+        default: {
+            GLfloat values[4] = { 0, 0, 0, 0 };
+            glGetUniformfv(stage->glProgram, location->second, values);
+            std::copy(values, values + 4, animation.from);
+            break;
+        }
+        }
+        return;
+    }
+}
+
+void ShaderProgram::advanceUniformAnimations()
+{
+    if (uniformAnimations.empty())
+        return;
+
+    double now = g_get_monotonic_time() / 1000000.0;
+
+    for (auto iterator = uniformAnimations.begin(); iterator != uniformAnimations.end();) {
+        const std::string& name = iterator->first;
+        UniformAnimation& animation = iterator->second;
+
+        if (animation.progress(now) >= 1.0) {
+            uniformValues[name] = animation.target;
+            iterator = uniformAnimations.erase(iterator);
+            continue;
+        }
+
+        if (!animation.snap) {
+            if (!animation.fromResolved)
+                resolveAnimationStart(name, animation);
+
+            auto type = uniformTypes.find(name);
+            bool isInt = type != uniformTypes.end()
+                && (type->second == GL_INT || type->second == GL_INT_VEC2 || type->second == GL_INT_VEC3 || type->second == GL_INT_VEC4);
+
+            double current[4] = { 0, 0, 0, 0 };
+            animation.sample(now, current);
+            uniformValues[name] = formatValueComponents(current, animation.components, isInt);
+        }
+
+        iterator++;
+    }
+}
+
 gboolean ShaderProgram::render(GtkGLArea* area)
 {
     int defaultID;
@@ -491,6 +574,8 @@ gboolean ShaderProgram::render(GtkGLArea* area)
         ticks = std::max(ticks--, 1);
         return true;
     }
+
+    advanceUniformAnimations();
 
     glViewport(0, 0, shaderProps->windowWidth, shaderProps->windowHeight);
 

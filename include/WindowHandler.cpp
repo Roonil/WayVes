@@ -35,7 +35,7 @@ ShaderWindowHandler::ShaderWindowHandler(ShaderProps* shaderProps, PipeWireHandl
     }
 }
 
-void ShaderWindowHandler::parseMessage(char buffer[], int bytes, std::map<std::string, std::string>* runTimeOverrides)
+void ShaderWindowHandler::parseMessage(char buffer[], int bytes, ShaderProgram* shaderProgram)
 {
     std::stringstream bufferStream;
     bufferStream << buffer;
@@ -56,7 +56,53 @@ void ShaderWindowHandler::parseMessage(char buffer[], int bytes, std::map<std::s
         variableName.erase(std::remove_if(variableName.begin(), variableName.end(), ::isspace), variableName.end());
         variableValue.erase(std::remove_if(variableValue.begin(), variableValue.end(), ::isspace), variableValue.end());
 
-        (*runTimeOverrides)[variableName] = variableValue;
+        std::string::size_type modifiersIdx = variableValue.find(";");
+        std::string targetValue = variableValue.substr(0, modifiersIdx);
+
+        double durationMs = 0;
+        Easing easing;
+
+        if (modifiersIdx != std::string::npos) {
+            std::stringstream modifiers(variableValue.substr(modifiersIdx + 1));
+            std::string modifier;
+
+            while (std::getline(modifiers, modifier, ';')) {
+                std::string::size_type separatorIdx = modifier.find("=");
+                std::string key = modifier.substr(0, separatorIdx);
+                std::string value = separatorIdx == std::string::npos ? "" : modifier.substr(separatorIdx + 1);
+
+                if (key == "dur") {
+                    try {
+                        durationMs = std::stod(value);
+                    } catch (const std::exception&) {
+                        Errors::throwError("Invalid duration '" + value + "' in Piped data", variableName, "For", 1);
+                    }
+                } else if (key == "ease") {
+                    if (!Easing::parse(value, &easing))
+                        Errors::throwError("Unknown curve '" + value + "' in Piped data, using linear", variableName, "For", 1);
+                } else
+                    Errors::throwError("Unknown modifier '" + modifier + "' in Piped data", variableName, "For", 1);
+            }
+        }
+
+        if (durationMs <= 0) {
+            shaderProgram->uniformAnimations.erase(variableName);
+            shaderProgram->uniformValues[variableName] = targetValue;
+            continue;
+        }
+
+        UniformAnimation animation;
+        bool boolArray[4] = { 0, 0, 0, 0 };
+
+        parseValue(targetValue, animation.to, boolArray);
+        animation.target = targetValue;
+        animation.components = countValueComponents(targetValue);
+        animation.snap = detectType(targetValue) < 2;
+        animation.startTime = g_get_monotonic_time() / 1000000.0;
+        animation.duration = durationMs / 1000.0;
+        animation.easing = easing;
+
+        shaderProgram->uniformAnimations[variableName] = animation;
     }
 }
 
@@ -140,7 +186,7 @@ void ShaderWindowHandler::handleUniforms(GDBusConnection* connection,
         g_variant_get(parameters, "(&s)", &msg);
         std::string messageString = std::string(msg);
 
-        parseMessage((char*)msg, messageString.size(), (std::map<std::string, std::string>*)user_data);
+        parseMessage((char*)msg, messageString.size(), (ShaderProgram*)user_data);
     }
 }
 
@@ -404,7 +450,7 @@ void ShaderWindowHandler::setGLArea()
 
 void ShaderWindowHandler::handleGDBusSignals(GDBusConnection* conn)
 {
-    g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.shaderProps->className)).c_str(), "UniformValue", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleUniforms, &shaderProgram.uniformValues, NULL);
+    g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.shaderProps->className)).c_str(), "UniformValue", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleUniforms, &shaderProgram, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + std::string(shaderProgram.shaderProps->className)).c_str(), "ClassCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l." + instance).c_str(), "TearDown", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);
     g_dbus_connection_signal_subscribe(conn, NULL, std::string("com.r00n1l.allcli").c_str(), "AllCLI", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE, handleCLI, this, NULL);

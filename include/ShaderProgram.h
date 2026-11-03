@@ -12,12 +12,15 @@
 #include "ShaderFiles.h"
 #include "FilesWatcher.h"
 #include "Files.h"
+#include "UniformAnimation.h"
 #include <memory>
 // clang-format on
 
 class ShaderProgram {
 private:
     void initializeShaders(GtkGLArea* area);
+    void resolveAnimationStart(const std::string& name, UniformAnimation& animation);
+    void advanceUniformAnimations();
 
 public:
     bool shouldRender = true, renderAudio = false, audioLoaded = false,
@@ -33,6 +36,7 @@ public:
 
     std::map<std::string, std::string> uniformValues = { };
     std::map<std::string, int> uniformTypes = { };
+    std::map<std::string, UniformAnimation> uniformAnimations = { };
 
     ShaderProps* shaderProps = NULL;
 

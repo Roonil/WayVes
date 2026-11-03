@@ -57,7 +57,7 @@ public:
 
 class ShaderWindowHandler : public WindowHandler {
 private:
-    static void parseMessage(char buffer[], int bytes, std::map<std::string, std::string>* runTimeOverrides);
+    static void parseMessage(char buffer[], int bytes, ShaderProgram* shaderProgram);
     static void handleUniforms(GDBusConnection* connection,
         const gchar* sender_name,
         const gchar* object_path,
