@@ -1,0 +1,15 @@
+uniform vec4 primary = rgba(188, 194, 255, 1);
+uniform vec4 sourceColor = rgba(30, 51, 194, 1);
+uniform vec4 onPrimary = rgba(36, 43, 97, 1);
+uniform vec4 primaryContainer = rgba(59, 66, 121, 1);
+uniform vec4 onPrimaryContainer = rgba(223, 224, 255, 1);
+uniform vec4 secondary = rgba(196, 197, 221, 1);
+uniform vec4 tertiary = rgba(230, 186, 214, 1);
+uniform vec4 surface = rgba(19, 19, 24, 1);
+uniform vec4 onSurface = rgba(228, 225, 233, 1);
+uniform vec4 surfaceContainer = rgba(31, 31, 37, 1);
+uniform vec4 outline = rgba(144, 144, 154, 1);
+uniform vec4 disabled = rgba(144, 144, 154, 1);
+uniform vec4 onDisabled = rgba(70, 70, 79, 1);
+uniform vec4 surfaceDisabled = rgba(27, 27, 33, 1);
+uniform bool isDarkMode = true;
