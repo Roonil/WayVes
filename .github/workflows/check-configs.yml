@@ -1,0 +1,36 @@
+name: Check configs
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git gtk4 gtk4-layer-shell \
+            pipewire wireplumber libyaml libepoxy mesa sway dbus nodejs
+          setcap -r /usr/bin/sway
+
+      - uses: actions/checkout@v4
+
+      - name: Build libcyaml
+        run: |
+          git init -q /tmp/libcyaml
+          git -C /tmp/libcyaml fetch -q --depth 1 https://github.com/tlsa/libcyaml f7f4a1543162724b7b8060105744289dea4ca634
+          git -C /tmp/libcyaml checkout -q FETCH_HEAD
+          make -C /tmp/libcyaml install VARIANT=release PREFIX=/usr
+
+      - name: Build WayVes
+        run: make -j"$(nproc)"
+
+      - name: Check configs
+        run: |
+          useradd -m ci
+          chown -R ci "$GITHUB_WORKSPACE"
+          chmod +x ci/*.sh
+          runuser -u ci -- dbus-run-session -- ci/headless.sh build/WayVes

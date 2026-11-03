@@ -7,6 +7,28 @@
 #include <sstream>
 #include <utility>
 
+static double outBounce(double t)
+{
+    const double n1 = 7.5625;
+    const double d1 = 2.75;
+
+    if (t < 1.0 / d1)
+        return n1 * t * t;
+
+    if (t < 2.0 / d1) {
+        t -= 1.5 / d1;
+        return n1 * t * t + 0.75;
+    }
+
+    if (t < 2.5 / d1) {
+        t -= 2.25 / d1;
+        return n1 * t * t + 0.9375;
+    }
+
+    t -= 2.625 / d1;
+    return n1 * t * t + 0.984375;
+}
+
 double Easing::sampleBezier(double a, double b, double s) const
 {
     double inverse = 1.0 - s;
@@ -56,6 +78,9 @@ double Easing::apply(double t) const
     const double c1 = 1.70158;
     const double c2 = c1 * 1.525;
     const double c3 = c1 + 1.0;
+    const double pi = std::acos(-1.0);
+    const double c4 = 2.0 * pi / 3.0;
+    const double c5 = 2.0 * pi / 4.5;
 
     switch (type) {
     case EaseType::Linear:
@@ -88,6 +113,52 @@ double Easing::apply(double t) const
         return t < 0.5
             ? (std::pow(2.0 * t, 2.0) * ((c2 + 1.0) * 2.0 * t - c2)) / 2.0
             : (std::pow(2.0 * t - 2.0, 2.0) * ((c2 + 1.0) * (t * 2.0 - 2.0) + c2) + 2.0) / 2.0;
+    case EaseType::InSine:
+        return 1.0 - std::cos(t * pi / 2.0);
+    case EaseType::OutSine:
+        return std::sin(t * pi / 2.0);
+    case EaseType::InOutSine:
+        return -(std::cos(pi * t) - 1.0) / 2.0;
+    case EaseType::InQuart:
+        return std::pow(t, 4.0);
+    case EaseType::OutQuart:
+        return 1.0 - std::pow(1.0 - t, 4.0);
+    case EaseType::InOutQuart:
+        return t < 0.5 ? 8.0 * std::pow(t, 4.0) : 1.0 - std::pow(-2.0 * t + 2.0, 4.0) / 2.0;
+    case EaseType::InQuint:
+        return std::pow(t, 5.0);
+    case EaseType::OutQuint:
+        return 1.0 - std::pow(1.0 - t, 5.0);
+    case EaseType::InOutQuint:
+        return t < 0.5 ? 16.0 * std::pow(t, 5.0) : 1.0 - std::pow(-2.0 * t + 2.0, 5.0) / 2.0;
+    case EaseType::InCirc:
+        return 1.0 - std::sqrt(1.0 - t * t);
+    case EaseType::OutCirc:
+        return std::sqrt(1.0 - (t - 1.0) * (t - 1.0));
+    case EaseType::InOutCirc:
+        return t < 0.5
+            ? (1.0 - std::sqrt(1.0 - 4.0 * t * t)) / 2.0
+            : (std::sqrt(1.0 - std::pow(-2.0 * t + 2.0, 2.0)) + 1.0) / 2.0;
+    case EaseType::InElastic:
+        if (t == 0.0 || t == 1.0)
+            return t;
+        return -std::pow(2.0, 10.0 * t - 10.0) * std::sin((10.0 * t - 10.75) * c4);
+    case EaseType::OutElastic:
+        if (t == 0.0 || t == 1.0)
+            return t;
+        return std::pow(2.0, -10.0 * t) * std::sin((10.0 * t - 0.75) * c4) + 1.0;
+    case EaseType::InOutElastic:
+        if (t == 0.0 || t == 1.0)
+            return t;
+        return t < 0.5
+            ? -(std::pow(2.0, 20.0 * t - 10.0) * std::sin((20.0 * t - 11.125) * c5)) / 2.0
+            : (std::pow(2.0, -20.0 * t + 10.0) * std::sin((20.0 * t - 11.125) * c5)) / 2.0 + 1.0;
+    case EaseType::InBounce:
+        return 1.0 - outBounce(1.0 - t);
+    case EaseType::OutBounce:
+        return outBounce(t);
+    case EaseType::InOutBounce:
+        return t < 0.5 ? (1.0 - outBounce(1.0 - 2.0 * t)) / 2.0 : (1.0 + outBounce(2.0 * t - 1.0)) / 2.0;
     case EaseType::CubicBezier:
         return sampleBezier(bezier[1], bezier[3], solveBezierX(t));
     }
@@ -141,6 +212,24 @@ bool Easing::parse(std::string name, Easing* easing)
         { "inback", EaseType::InBack },
         { "outback", EaseType::OutBack },
         { "inoutback", EaseType::InOutBack },
+        { "insine", EaseType::InSine },
+        { "outsine", EaseType::OutSine },
+        { "inoutsine", EaseType::InOutSine },
+        { "inquart", EaseType::InQuart },
+        { "outquart", EaseType::OutQuart },
+        { "inoutquart", EaseType::InOutQuart },
+        { "inquint", EaseType::InQuint },
+        { "outquint", EaseType::OutQuint },
+        { "inoutquint", EaseType::InOutQuint },
+        { "incirc", EaseType::InCirc },
+        { "outcirc", EaseType::OutCirc },
+        { "inoutcirc", EaseType::InOutCirc },
+        { "inelastic", EaseType::InElastic },
+        { "outelastic", EaseType::OutElastic },
+        { "inoutelastic", EaseType::InOutElastic },
+        { "inbounce", EaseType::InBounce },
+        { "outbounce", EaseType::OutBounce },
+        { "inoutbounce", EaseType::InOutBounce },
     };
 
     for (const auto& entry : names) {
